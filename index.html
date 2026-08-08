@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>IPO 008-2025 · Puentes Boyacá — Estado de Avance</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ok:#16a34a; --okbg:#dcfce7; --fir:#0891b2; --firbg:#cffafe;
+  --rev:#2563eb; --revbg:#dbeafe; --obs:#d97706; --obsbg:#fef3c7;
+  --pen:#94a3b8; --penbg:#f1f5f9; --sb:#a855f7; --sbbg:#f3e8ff;
+  --ink:#0f172a; --ink2:#334155; --muted:#64748b; --line:#e2e8f0;
+  --panel:#fff; --bg:#f4f6fa; --brand:#0b3b6f; --brand2:#1e5ba6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-apple-system,Roboto,Arial,sans-serif;font-size:13.5px;line-height:1.4}
+.app{max-width:1720px;margin:0 auto;padding:16px 20px 60px}
+.header{background:linear-gradient(120deg,var(--brand) 0%,var(--brand2) 70%,#3b82f6 100%);color:#fff;border-radius:14px;padding:18px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;box-shadow:0 4px 16px rgba(11,59,111,.25)}
+.header h1{margin:0;font-size:20px;font-weight:700}
+.header .sub{opacity:.92;font-size:12.5px;margin-top:3px}
+.header .cut{margin-left:auto;text-align:right;font-size:12.5px;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25)}
+.hswitch{display:flex;align-items:center;gap:7px;font-size:12.5px;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25);cursor:pointer;user-select:none}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:16px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
+.kpi .n{font-size:24px;font-weight:800;line-height:1.1}
+.kpi .t{color:var(--muted);font-size:11.5px;margin-top:2px}
+.kpi.big .n{color:var(--brand2)} .kpi.ok .n{color:var(--ok)} .kpi.fir .n{color:var(--fir)}
+.kpi.rev .n{color:var(--rev)} .kpi.obs .n{color:var(--obs)} .kpi.pen .n{color:var(--muted)}
+.segwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 16px}
+.seg-track{height:20px;border-radius:10px;background:var(--penbg);overflow:hidden;display:flex;margin-top:8px}
+.seg-lab{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:8px;align-items:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tabs{display:flex;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
+.tab{padding:10px 20px;border-radius:10px 10px 0 0;background:#e6ecf4;border:1px solid var(--line);border-bottom:none;cursor:pointer;font-weight:600;color:var(--ink2);font-size:13.5px}
+.tab.active{background:var(--panel);color:var(--brand);border-top:3px solid var(--brand2)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:16px;box-shadow:0 1px 4px rgba(15,23,42,.06)}
+.sec{color:var(--brand);font-size:15px;margin:0 0 10px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin:4px 0 12px}
+.note{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.55}
+.mtable{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
+.mtable th{background:#eef3fa;color:var(--brand);font-weight:700;padding:8px 8px;border:1px solid var(--line);position:sticky;top:0;z-index:2;text-align:center}
+.mtable td{border:1px solid var(--line);padding:6px 8px;vertical-align:middle;text-align:center}
+.volcell{background:#fbfcfe;font-weight:600;color:var(--ink2);white-space:nowrap;position:sticky;left:0;z-index:1;text-align:left!important}
+.td-A{background:var(--okbg)} .td-T{background:var(--revbg)}
+.td-C{background:var(--obsbg)} .td-P{background:var(--penbg)} .td-S{background:repeating-linear-gradient(45deg,#f3e8ff,#f3e8ff 6px,#ede4fb 6px,#ede4fb 12px)}
+.est{display:inline-block;padding:2px 7px;border-radius:9px;font-size:9.5px;font-weight:700;white-space:nowrap}
+.est-A{background:var(--ok);color:#fff} .est-T{background:var(--rev);color:#fff}
+.est-C{background:var(--obs);color:#fff} .est-P{background:var(--pen);color:#fff} .est-S{background:var(--sb);color:#fff}
+.pct{font-weight:700;font-size:12px}
+.cbar{display:flex;align-items:center;gap:8px;margin:4px 0}
+.cbar .cl{flex:0 0 240px;font-size:12px;text-align:right;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbar .ct{flex:1;height:18px;background:#f1f5f9;border-radius:5px;overflow:hidden;display:flex}
+.cbar .cvv{flex:0 0 150px;font-size:11.5px;color:var(--ink2)}
+.fbar .cl{flex:0 0 240px}
+.gtip{position:fixed;z-index:50;background:#0f172a;color:#f1f5f9;padding:10px 12px;border-radius:8px;font-size:12px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;display:none;line-height:1.5}
+.gtip b{color:#93c5fd}
+.badge-sb{display:inline-block;padding:1px 7px;border-radius:8px;font-size:9.5px;font-weight:800;background:var(--sbbg);color:#6b21a8;border:1px solid #d8b4fe;margin-left:6px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.header .cut{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>Estudios y diseños para diferentes puentes ubicados en el departamento de Boyacá</h1>
+      <div class="sub">Contrato No. IPO 008-2025 · 16 puentes activos + 1 suspendido · 16 actividades por puente · estado deducido de la trazabilidad</div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label class="hswitch"><input type="checkbox" id="chkSB" onchange="renderResumen()" style="cursor:pointer"><span>Incluir San Benito en el % global</span></label>
+      <label class="hswitch"><input type="checkbox" id="chkPres" onchange="modoPresentacion(this.checked)" style="cursor:pointer"><span>Modo presentación</span></label>
+      <div class="cut" style="margin-left:0"><b>Corte:</b> <span id="corte"></span> · <b>Hoy:</b> <span id="hoyd"></span><br>Fuente: Google Sheets · <a href="#" onclick="recargar();return false" style="color:#bfdbfe">Actualizar</a></div>
+    </div>
+  </div>
+
+  <div id="cargando" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:34px;margin:16px 0;text-align:center;color:var(--muted)">
+    <div style="font-size:15px;font-weight:600;color:var(--brand)">Cargando datos…</div>
+    <div style="font-size:12.5px;margin-top:6px">Leyendo PUENTES, ACTIVIDADES, AVANCE, PRESUPUESTO y TRAZABILIDAD desde Google Sheets</div>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="segwrap" id="segwrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center">
+      <b style="color:var(--brand);font-size:13.5px">Radicado vs. aprobado — sobre el presupuesto del contrato</b>
+      <label style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);cursor:pointer;user-select:none">
+        <input type="checkbox" id="chkRad" checked onchange="renderResumen()"> Mostrar radicado en la barra
+      </label>
+    </div>
+    <div class="seg-track" id="segTrack"></div>
+    <div class="seg-lab" id="segLab"></div>
+  </div>
+
+  <div class="tabs" id="tabs" style="display:none">
+    <div class="tab active" data-t="t1" onclick="showTab('t1',this)">1 · Resumen</div>
+    <div class="tab" data-t="t2" onclick="showTab('t2',this)">2 · Matriz Puente × Actividad</div>
+    <div class="tab" data-t="t3" onclick="showTab('t3',this)">3 · Avance por fase</div>
+    <div class="tab" data-t="t4" onclick="showTab('t4',this)">4 · Costos</div>
+    <div class="tab" data-t="t5" onclick="showTab('t5',this)">5 · Trazabilidad</div>
+  </div>
+
+  <div class="panel" id="t1" style="display:none">
+    <h3 class="sec">Avance por puente</h3>
+    <div class="legend">
+      <span><span class="dot" style="background:#16a34a"></span>En proceso — ≥70% ejecutado</span>
+      <span><span class="dot" style="background:#d97706"></span>Atrasado — 30% a 70%</span>
+      <span><span class="dot" style="background:#dc2626"></span>Crítico — menos de 30%</span>
+      <span><span class="dot" style="background:#a855f7"></span>Suspendido</span>
+    </div>
+    <div id="rankPuentes"></div>
+    <h3 class="sec" style="margin-top:22px">Avance por actividad — transversal a los puentes activos</h3>
+    <div id="rankActividades"></div>
+    <div class="note">El % de cada puente y actividad es el promedio de <b>campo, oficina y aprobación</b> (hoja AVANCE), ponderado por el presupuesto de cada actividad. Los umbrales de color (70% / 30%) son un punto de partida — ajústelos en el código si su equipo maneja otros.</div>
+  </div>
+
+  <div class="panel" id="t2" style="display:none">
+    <h3 class="sec">Matriz Puente × Actividad — estado según la trazabilidad</h3>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--okbg);border:1px solid var(--ok)"></span><b>Aprobado</b> — habilita cobro</span>
+      <span><span class="dot" style="background:var(--revbg);border:1px solid var(--rev)"></span>En interventoría — entregado, sin respuesta</span>
+      <span><span class="dot" style="background:var(--obsbg);border:1px solid var(--obs)"></span>En consultoría — con observaciones</span>
+      <span><span class="dot" style="background:var(--penbg);border:1px solid var(--pen)"></span>No entregado</span>
+      <span><span class="dot" style="background:#f3e8ff;border:1px solid var(--sb)"></span>Suspendido</span>
+    </div>
+    <div style="overflow:auto;max-height:75vh"><table class="mtable" id="mtx"></table></div>
+    <div class="note">El estado no se digita: se lee la fila más reciente de la hoja TRAZABILIDAD para ese puente y esa actividad. Si es una <b>ENTREGA</b> sin respuesta después, el entregable está <b>en interventoría</b>. El % de cada celda es <code>%campo×peso_campo + %oficina×peso_oficina + %aprobación×peso_aprobación</code>, con los pesos fijos de la hoja PESOS_FASE. Pase el cursor por una celda para ver el historial de fechas y el detalle por fase.</div>
+  </div>
+
+  <div class="panel" id="t3" style="display:none">
+    <h3 class="sec">Avance por fase — campo, oficina y aprobación</h3>
+    <div class="legend">
+      <span><span class="dot" style="background:#2a78d6"></span>Campo</span>
+      <span><span class="dot" style="background:#eda100"></span>Oficina</span>
+      <span><span class="dot" style="background:#1baf7a"></span>Aprobación</span>
+    </div>
+    <h4 style="font-size:13px;color:var(--ink2);margin:14px 0 8px">Por puente</h4>
+    <div id="faseBP"></div>
+    <h4 style="font-size:13px;color:var(--ink2);margin:20px 0 8px">Por actividad</h4>
+    <div id="faseBA"></div>
+    <div class="note">Cada segmento es la <b>contribución real de esa fase al % total</b> (peso fijo de la actividad, hoja PESOS_FASE, multiplicado por el % de avance de esa fase) — por eso los tres siempre suman el % de avance del puente o la actividad. Esta vista reemplaza la curva S del proyecto anterior: en vez de programado-vs-ejecutado, muestra <b>en qué parte del proceso está estancado cada puente o actividad</b> — si el cuello de botella está en campo, en oficina o esperando aprobación.</div>
+  </div>
+
+  <div class="panel" id="t4" style="display:none">
+    <h3 class="sec">Costos del proyecto — presupuesto Boyacá</h3>
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin:6px 0 14px" id="ckpi"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start">
+      <div><h3 class="sec" style="font-size:13.5px">Costo por puente (sin IVA)</h3><div id="cbarP"></div></div>
+      <div><h3 class="sec" style="font-size:13.5px">Costo por actividad — todo el proyecto (sin IVA)</h3><div id="cbarA"></div></div>
+    </div>
+    <h3 class="sec" style="margin-top:20px">Matriz de costos: Actividad × Puente (sin IVA, $ millones)</h3>
+    <div style="overflow:auto;max-height:70vh"><table class="mtable" id="ctbl"></table></div>
+    <div class="note">El subtotal y el costo por puente usan el presupuesto de la hoja PUENTES (siempre completo) y por eso no cambian con el interruptor del encabezado. La <b>matriz</b> de abajo sí depende de la hoja PRESUPUESTO desglosada por actividad — San Benito no tiene ese desglose en la fuente original, así que su columna aparece vacía aunque su presupuesto sí cuenta en el total del contrato.</div>
+  </div>
+
+  <div class="panel" id="t5" style="display:none">
+    <h3 class="sec">Tiempo de respuesta de la interventoría</h3>
+    <div style="overflow:auto"><table class="mtable" id="ttbl" style="max-width:900px"></table></div>
+    <div class="note">Días calendario entre cada entrega del consultor y la siguiente respuesta, calculados desde las fechas de TRAZABILIDAD.</div>
+    <h3 class="sec" style="margin-top:22px">Entregables con más tiempo sin movimiento</h3>
+    <div style="overflow:auto"><table class="mtable" id="stale"></table></div>
+    <div class="note">Puente/actividad cuyo último movimiento (entrega o respuesta) lleva más de 15 días sin cambiar de estado. Naranja: más de 15 días · rojo: más de 30.</div>
+  </div>
+</div>
+<div class="gtip" id="gtip"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIGURACIÓN — pegue aquí las 5 URLs publicadas del Google Sheet
+   (Archivo → Compartir → Publicar en la web → elija la hoja → CSV).
+   ══════════════════════════════════════════════════════════════ */
+const HOJAS = {
+  PUENTES:      'PEGUE_AQUI_URL_PUENTES',
+  ACTIVIDADES:  'PEGUE_AQUI_URL_ACTIVIDADES',
+  PESOS_FASE:   'PEGUE_AQUI_URL_PESOS_FASE',
+  AVANCE:       'PEGUE_AQUI_URL_AVANCE',
+  PRESUPUESTO:  'PEGUE_AQUI_URL_PRESUPUESTO',
+  TRAZABILIDAD: 'PEGUE_AQUI_URL_TRAZABILIDAD',
+};
+
+function parseCSV(txt){
+  const filas=[]; let f=[], campo='', comillas=false;
+  txt = txt.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  for(let i=0;i<txt.length;i++){
+    const ch=txt[i];
+    if(comillas){
+      if(ch==='"'){ if(txt[i+1]==='"'){ campo+='"'; i++; } else comillas=false; }
+      else campo+=ch;
+    } else if(ch==='"') comillas=true;
+    else if(ch===','){ f.push(campo); campo=''; }
+    else if(ch==='\n'){ f.push(campo); filas.push(f); f=[]; campo=''; }
+    else campo+=ch;
+  }
+  if(campo!==''||f.length){ f.push(campo); filas.push(f); }
+  return filas.map(r=>r.map(c=>c.trim()));
+}
+function tabla(filas, columnas){
+  let h=-1;
+  for(let i=0;i<Math.min(filas.length,15);i++){
+    const bajo=filas[i].map(c=>c.toLowerCase());
+    if(columnas.every(c=>bajo.includes(c))){ h=i; break; }
+  }
+  if(h<0) throw new Error('No se encontró la fila de encabezados. Se esperaban: '+columnas.join(', '));
+  const cab=filas[h].map(c=>c.toLowerCase());
+  return filas.slice(h+1).filter(r=>r.some(c=>c!=='')).map(r=>{
+    const o={}; cab.forEach((c,j)=>{ if(c) o[c]=r[j]!==undefined?r[j]:''; }); o._cols=r; return o;
+  });
+}
+function aFecha(s){
+  if(!s) return '';
+  s=String(s).trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+  if(m){ let a=+m[3]; if(a<100) a+=2000; return `${a}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`; }
+  return '';
+}
+function aNum(s){
+  let t=String(s==null?'':s).replace(/[^\d,.\-]/g,'').trim();
+  if(!t) return 0;
+  const lc=t.lastIndexOf(','), lp=t.lastIndexOf('.');
+  if(lc>-1&&lp>-1){ t = lc>lp ? t.replace(/\./g,'').replace(',','.') : t.replace(/,/g,''); }
+  else if(lc>-1){ t = (t.split(',').length===2 && t.length-lc-1<=2) ? t.replace(',','.') : t.replace(/,/g,''); }
+  else if(lp>-1){ t = (t.split('.').length===2 && t.length-lp-1<=2) ? t : t.replace(/\./g,''); }
+  const v=parseFloat(t); return isNaN(v)?0:v;
+}
+/* Porcentajes: Google Sheets exporta los decimales de fórmulas con punto y sin
+   separador de miles, así que NO se reutiliza aNum (pensada para cifras en pesos,
+   donde un punto con muchos decimales se interpreta como separador de miles). */
+function aPct(s){
+  if(s===''||s==null) return 0;
+  const str=String(s).trim();
+  const hasPct=str.includes('%');
+  const v=parseFloat(str.replace('%','').replace(',','.'));
+  if(isNaN(v)) return 0;
+  if(hasPct) return v/100;
+  return v>1 ? v/100 : v;
+}
+async function traer(nombre){
+  const url=HOJAS[nombre];
+  if(!url||url.startsWith('PEGUE_AQUI')) throw new Error(`Falta configurar la URL de la hoja ${nombre}.`);
+  const r=await fetch(url);
+  if(!r.ok) throw new Error(`No se pudo leer ${nombre} (código ${r.status}). Verifique que la hoja esté publicada.`);
+  const t=await r.text();
+  if(t.trimStart().startsWith('<')) throw new Error(`La URL de ${nombre} no devuelve CSV. Revise que haya elegido formato CSV al publicar.`);
+  return parseCSV(t);
+}
+
+async function cargarDatos(){
+  const [pue,act,pes,ava,pre,tra]=await Promise.all(
+    ['PUENTES','ACTIVIDADES','PESOS_FASE','AVANCE','PRESUPUESTO','TRAZABILIDAD'].map(traer));
+
+  const PUENTES = tabla(pue,['id','nombre','presupuesto','estado']).filter(r=>r['id']&&!isNaN(+r['id'])).map(r=>(
+    {id:+r['id'], nombre:r['nombre'], presupuesto:aNum(r['presupuesto']), estado:(r['estado']||'ACTIVO').toUpperCase()}
+  )).sort((a,b)=>a.id-b.id);
+  const nombresPuente=new Set(PUENTES.map(p=>p.nombre));
+
+  const ACTIVIDADES = tabla(act,['id','nombre']).filter(r=>r['id']&&!isNaN(+r['id'])).map(r=>({id:+r['id'], nombre:r['nombre']}))
+    .sort((a,b)=>a.id-b.id);
+  const nombresAct=new Set(ACTIVIDADES.map(a=>a.nombre));
+
+  const avisos=[];
+  const PESO_FASE={};
+  tabla(pes,['actividad','peso_campo','peso_oficina','peso_aprobacion']).forEach((r,i)=>{
+    const a=r['actividad'], n=i+2;
+    if(!nombresAct.has(a)){ avisos.push(`PESOS_FASE fila ${n}: actividad "${a}" no existe en ACTIVIDADES.`); return; }
+    const campo=aPct(r['peso_campo']), oficina=aPct(r['peso_oficina']), aprob=aPct(r['peso_aprobacion']);
+    if(Math.abs(campo+oficina+aprob-1)>0.02) avisos.push(`PESOS_FASE fila ${n}: los pesos de "${a}" suman ${((campo+oficina+aprob)*100).toFixed(0)}%, deberían sumar 100%.`);
+    PESO_FASE[a]={campo,oficina,aprobacion:aprob};
+  });
+  ACTIVIDADES.forEach(a=>{ if(!PESO_FASE[a.nombre]) PESO_FASE[a.nombre]={campo:0,oficina:1,aprobacion:0}; });
+
+  const FASE={};
+  tabla(ava,['puente','actividad']).forEach((r,i)=>{
+    const p=r['puente'], a=r['actividad'], n=i+2;
+    if(!nombresPuente.has(p)){ avisos.push(`AVANCE fila ${n}: puente "${p}" no existe en PUENTES.`); return; }
+    if(!nombresAct.has(a)){ avisos.push(`AVANCE fila ${n}: actividad "${a}" no existe en ACTIVIDADES.`); return; }
+    const campo=aPct(r['pct_campo']), oficina=aPct(r['pct_oficina']), aprob=aPct(r['pct_aprobacion']);
+    if(campo+oficina+aprob>3.02) avisos.push(`AVANCE fila ${n}: revise los % de fase de "${p} · ${a}", parecen estar fuera de rango.`);
+    const w=PESO_FASE[a];
+    const total = campo*w.campo + oficina*w.oficina + aprob*w.aprobacion;
+    FASE[p+'|'+a]={campo,oficina,aprobacion:aprob,total};
+  });
+
+  const PESO={};
+  const rp=tabla(pre,['actividad']);
+  const colPuentes = rp.length ? rp[0]._cols.slice(1) : [];
+  rp.forEach(r=>{
+    const a=r['actividad']; if(!a||!nombresAct.has(a)) return;
+    PUENTES.forEach((p,j)=>{ const v=aNum(r._cols[j+1]); if(v) PESO[p.nombre+'|'+a]=v; });
+  });
+
+  const EVS={};
+  tabla(tra,['puente','actividad','evento','fecha']).forEach((r,i)=>{
+    const p=r['puente'], a=r['actividad'], ev=(r['evento']||'').toUpperCase();
+    const f=aFecha(r['fecha']); let res=(r['resultado']||'').toUpperCase();
+    const n=i+2;
+    if(!nombresPuente.has(p)){ avisos.push(`TRAZABILIDAD fila ${n}: puente "${p}" no existe.`); return; }
+    if(!nombresAct.has(a)){ avisos.push(`TRAZABILIDAD fila ${n}: actividad "${a}" no existe.`); return; }
+    if(ev!=='ENTREGA'&&ev!=='RESPUESTA'){ avisos.push(`TRAZABILIDAD fila ${n}: evento "${r['evento']}" no válido.`); return; }
+    if(!f){ avisos.push(`TRAZABILIDAD fila ${n}: fecha vacía o ilegible ("${r['fecha']}").`); return; }
+    if(ev==='RESPUESTA'&&res!=='OBSERVACIONES'&&res!=='APROBACION'){ res='OBSERVACIONES'; }
+    if(ev==='ENTREGA') res='';
+    const k=p+'|'+a;
+    (EVS[k]=EVS[k]||[]).push({ev,res,v:r['version']||'',f,nota:r['nota']||''});
+  });
+  Object.keys(EVS).forEach(k=>EVS[k].sort((a,b)=>a.f<b.f?-1:1));
+
+  const hoy=new Date();
+  return {data:{PUENTES,ACTIVIDADES,PESO,PESO_FASE,FASE,EVS,corte:hoy.toISOString().slice(0,10)}, avisos};
+}
+
+function mostrarError(e){
+  document.getElementById('cargando').innerHTML=
+    `<div style="font-size:15px;font-weight:700;color:#b91c1c">No se pudieron cargar los datos</div>
+     <div style="font-size:13px;margin-top:8px;color:var(--ink2);max-width:620px;margin-left:auto;margin-right:auto">${e.message}</div>
+     <div style="font-size:12px;margin-top:14px;color:var(--muted)">Revise que las 5 hojas estén publicadas en formato CSV y que las URLs del bloque <b>HOJAS</b> estén completas.</div>
+     <button onclick="recargar()" style="margin-top:16px;padding:8px 20px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px">Reintentar</button>`;
+}
+function recargar(){
+  document.getElementById('cargando').style.display='block';
+  document.getElementById('cargando').innerHTML='<div style="font-size:15px;font-weight:600;color:var(--brand)">Actualizando…</div>';
+  document.getElementById('tabs').style.display='none';
+  document.getElementById('segwrap').style.display='none';
+  ['t1','t2','t3','t4','t5'].forEach(t=>document.getElementById(t).style.display='none');
+  iniciar();
+}
+async function iniciar(){
+  try{
+    const {data,avisos}=await cargarDatos();
+    document.getElementById('cargando').style.display='none';
+    document.getElementById('tabs').style.display='flex';
+    document.getElementById('segwrap').style.display='block';
+    document.getElementById('t1').style.display='block';
+    render(data);
+    if(avisos.length){
+      const d=document.createElement('div');
+      d.style.cssText='margin:12px 0;border-left:4px solid var(--obs);background:var(--obsbg);padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;color:#78350f';
+      d.innerHTML=`<b>${avisos.length} fila(s) con problemas:</b><ul style="margin:6px 0 0;padding-left:18px">`
+        +avisos.slice(0,8).map(a=>`<li>${a}</li>`).join('')+(avisos.length>8?`<li>… y ${avisos.length-8} más</li>`:'')+'</ul>';
+      document.getElementById('kpis').insertAdjacentElement('beforebegin',d);
+    }
+  }catch(e){ mostrarError(e); console.error(e); }
+}
+
+function render(DATA){
+const {PUENTES, ACTIVIDADES, PESO, PESO_FASE, FASE, EVS} = DATA;
+const ACTIVOS = PUENTES.filter(p=>p.estado!=='SUSPENDIDO');
+const NOM={A:'Aprobado',T:'En interventoría',C:'En consultoría',P:'No entregado',S:'Suspendido'};
+const fmt = s=>{ if(!s) return ''; const[y,m,d]=s.split('-'); return d+'/'+m+'/'+y.slice(2); };
+const fM = v=>'$ '+(v/1e6).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})+' M';
+const fF = v=>'$ '+Math.round(v).toLocaleString('es-CO');
+const D = s=>new Date(s+'T00:00:00');
+const _n=new Date();
+const TODAY=_n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
+document.getElementById('hoyd').textContent=_n.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+document.getElementById('corte').textContent=fmt(DATA.corte);
+
+function key(p,a){ return p+'|'+a; }
+function evsDe(p,a){ return EVS[key(p,a)]||[]; }
+function peso(p,a){ return PESO[key(p,a)]||0; }
+function fase(p,a){ return FASE[key(p,a)]||{campo:0,oficina:0,aprobacion:0,total:0}; }
+function estado(p,a){
+  if(PUENTES.find(x=>x.nombre===p&&x.estado==='SUSPENDIDO')) return 'S';
+  const e=evsDe(p,a); if(!e.length) return 'P';
+  const u=e[e.length-1];
+  if(u.ev==='ENTREGA') return 'T';
+  if(u.res==='APROBACION') return 'A';
+  return 'C';
+}
+function ultEntrega(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='ENTREGA'); return e.length?e[e.length-1]:null; }
+function ultResp(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='RESPUESTA'); return e.length?e[e.length-1]:null; }
+function priEntrega(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='ENTREGA'); return e.length?e[0]:null; }
+function diasSinMov(p,a){ const e=evsDe(p,a); if(!e.length) return null; return Math.max(0,Math.round((D(TODAY)-D(e[e.length-1].f))/86400000)); }
+
+window.showTab=function(id,el){
+  ['t1','t2','t3','t4','t5'].forEach(t=>document.getElementById(t).style.display=t===id?'block':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+};
+window.modoPresentacion=function(on){
+  document.querySelectorAll('.tab').forEach(t=>{ if(t.dataset.t==='t3') t.style.display=on?'none':''; });
+  if(on&&document.getElementById('t3').style.display!=='none') showTab('t1',document.querySelector('.tab[data-t="t1"]'));
+};
+const tip=document.getElementById('gtip');
+window.tipShow=function(ev,p,a){
+  const e=evsDe(p,a), f=fase(p,a), st=estado(p,a);
+  let h=`<b>${p}</b><br>${a}<br><span style="color:#94a3b8">Estado: ${NOM[st]}</span>`;
+  h+=`<div style="margin-top:6px;color:#93c5fd">Campo ${(f.campo*100).toFixed(0)}% · Oficina ${(f.oficina*100).toFixed(0)}% · Aprob. ${(f.aprobacion*100).toFixed(0)}%</div>`;
+  if(e.length){
+    h+='<div style="margin-top:6px;border-top:1px solid #334155;padding-top:5px">';
+    e.forEach(x=>{ h+=`<div style="margin:2px 0"><b>${x.ev==='ENTREGA'?'Entrega':'Respuesta'} ${x.v||''}</b> — ${fmt(x.f)}${x.res?' <span style="color:#4ade80">'+x.res+'</span>':''}</div>`; });
+    h+='</div>';
+  } else h+='<div style="margin-top:6px;color:#94a3b8">Sin movimientos registrados</div>';
+  tip.innerHTML=h; tip.style.display='block'; tipMove(ev);
+};
+window.tipMove=function(ev){
+  const x=ev.clientX+16, y=ev.clientY+16, w=tip.offsetWidth, hh=tip.offsetHeight;
+  tip.style.left=Math.min(x,innerWidth-w-12)+'px'; tip.style.top=Math.min(y,innerHeight-hh-12)+'px';
+};
+window.tipHide=function(){ tip.style.display='none'; };
+
+/* ── Agregados, dependientes del interruptor San Benito ── */
+function calcAgg(incluirSB){
+  const puentes = incluirSB ? PUENTES : ACTIVOS;
+  /* El total usa el presupuesto por puente (siempre completo), no la suma del
+     desglose por actividad: San Benito no tiene ese desglose en la fuente, así
+     que sumar solo PESO lo dejaría en $0 y el interruptor no cambiaría nada. */
+  const TOT = puentes.reduce((s,p)=>s+p.presupuesto,0);
+  let RAD=0, APR=0, EJE=0;
+  puentes.forEach(p=>ACTIVIDADES.forEach(a=>{
+    const w=peso(p.nombre,a.nombre); if(!w) return;
+    EJE += w*fase(p.nombre,a.nombre).total;
+    if(priEntrega(p.nombre,a.nombre)) RAD+=w;
+    if(estado(p.nombre,a.nombre)==='A') APR+=w;
+  }));
+  return {TOT,RAD,APR,EJE};
+}
+function avancePuente(p){
+  let w=0,e=0; ACTIVIDADES.forEach(a=>{ const ww=peso(p,a.nombre); w+=ww; e+=ww*fase(p,a.nombre).total; });
+  return w?e/w*100:0;
+}
+function avanceActividad(a){
+  let w=0,e=0; ACTIVOS.forEach(p=>{ const ww=peso(p.nombre,a); w+=ww; e+=ww*fase(p.nombre,a).total; });
+  return w?e/w*100:0;
+}
+/* Contribución ponderada de cada fase al % total: peso_fase(actividad) × %avance_de_esa_fase.
+   Las tres siempre suman el % total del entregable — por eso se pueden apilar. */
+function faseAgg(items, campoFn){
+  let w=0,c=0,o=0,ap=0;
+  items.forEach(it=>{
+    const ww=campoFn.w(it); const f=campoFn.f(it); const pf=campoFn.pf(it);
+    w+=ww; c+=ww*f.campo*pf.campo; o+=ww*f.oficina*pf.oficina; ap+=ww*f.aprobacion*pf.aprobacion;
+  });
+  return w?{campo:c/w*100,oficina:o/w*100,aprobacion:ap/w*100}:{campo:0,oficina:0,aprobacion:0};
+}
+
+window.renderResumen=function(){
+  const incluirSB=document.getElementById('chkSB').checked;
+  const {TOT,RAD,APR,EJE}=calcAgg(incluirSB);
+  const pE=TOT?EJE/TOT*100:0, pR=TOT?RAD/TOT*100:0, pA=TOT?APR/TOT*100:0;
+  const enMeta=PUENTES.filter(p=>p.estado!=='SUSPENDIDO'&&avancePuente(p.nombre)>=70).length;
+  const criticos=PUENTES.filter(p=>p.estado!=='SUSPENDIDO'&&avancePuente(p.nombre)<30).length;
+
+  document.getElementById('kpis').innerHTML=`
+   <div class="kpi big"><div class="n">${fM(TOT)}</div><div class="t">Presupuesto ${incluirSB?'(con San Benito)':'(sin San Benito)'}</div></div>
+   <div class="kpi rev"><div class="n">${pR.toFixed(1)}%</div><div class="t">Radicado — ${fM(RAD)}</div></div>
+   <div class="kpi"><div class="n" style="color:var(--brand2)">${pE.toFixed(1)}%</div><div class="t">Ejecutado ponderado — ${fM(EJE)}</div></div>
+   <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>
+   <div class="kpi ok"><div class="n">${enMeta}</div><div class="t">Puentes en proceso (≥70%)</div></div>
+   <div class="kpi"><div class="n" style="color:#dc2626">${criticos}</div><div class="t">Puentes críticos (&lt;30%)</div></div>`;
+
+  const verRad=document.getElementById('chkRad').checked;
+  const segAprob=pA, segRad=verRad?Math.max(0,pR-pA):0, segResto=Math.max(0,100-segAprob-segRad);
+  document.getElementById('segTrack').innerHTML=
+    `<div style="width:${segAprob}%;background:var(--ok)"></div>`+
+    (verRad?`<div style="width:${segRad}%;background:var(--rev)"></div>`:'');
+  document.getElementById('segLab').innerHTML=
+    `<span><span class="dot" style="background:var(--ok)"></span>Aprobado <b>${segAprob.toFixed(1)}%</b> — ${fM(APR)}</span>`+
+    (verRad?`<span><span class="dot" style="background:var(--rev)"></span>Radicado sin aprobar <b>${segRad.toFixed(1)}%</b> — ${fM(Math.max(0,RAD-APR))}</span>`:'')+
+    `<span><span class="dot" style="background:var(--pen)"></span>Pendiente por radicar <b>${segResto.toFixed(1)}%</b></span>`;
+
+  const rank=PUENTES.map(p=>({nombre:p.nombre,estado:p.estado,pct:p.estado==='SUSPENDIDO'?0:avancePuente(p.nombre)}))
+    .sort((a,b)=>b.pct-a.pct);
+  const mx=Math.max(...rank.map(r=>r.pct),1);
+  document.getElementById('rankPuentes').innerHTML=rank.map(r=>{
+    const col = r.estado==='SUSPENDIDO' ? '#a855f7' : (r.pct>=70?'#16a34a':r.pct>=30?'#d97706':'#dc2626');
+    return `<div class="cbar"><div class="cl">${r.nombre}${r.estado==='SUSPENDIDO'?'<span class="badge-sb">SUSPENDIDO</span>':''}</div>
+      <div class="ct"><div style="width:${r.pct/mx*100}%;background:${col};height:100%"></div></div>
+      <div class="cvv">${r.pct.toFixed(1)}%</div></div>`;
+  }).join('');
+
+  const rankA=ACTIVIDADES.map(a=>({nombre:a.nombre,pct:avanceActividad(a.nombre)})).sort((x,y)=>y.pct-x.pct);
+  const mxA=Math.max(...rankA.map(r=>r.pct),1);
+  document.getElementById('rankActividades').innerHTML=rankA.map(r=>{
+    const col=r.pct>=70?'#16a34a':r.pct>=30?'#d97706':'#dc2626';
+    return `<div class="cbar"><div class="cl">${r.nombre}</div>
+      <div class="ct"><div style="width:${r.pct/mxA*100}%;background:${col};height:100%"></div></div>
+      <div class="cvv">${r.pct.toFixed(1)}%</div></div>`;
+  }).join('');
+};
+renderResumen();
+
+/* ══ TAB 2 · MATRIZ ══ */
+(function(){
+  let t='<thead><tr><th class="volcell" style="min-width:230px">Puente</th>';
+  ACTIVIDADES.forEach(a=>t+=`<th style="min-width:120px">${a.nombre}</th>`);
+  t+='</tr></thead><tbody>';
+  PUENTES.forEach(p=>{
+    const susp=p.estado==='SUSPENDIDO';
+    t+=`<tr><td class="volcell">${p.nombre}${susp?'<span class="badge-sb">SUSPENDIDO</span>':''}</td>`;
+    ACTIVIDADES.forEach(a=>{
+      if(susp){ t+=`<td class="cell td-S"><span class="est est-S">—</span></td>`; return; }
+      const st=estado(p.nombre,a.nombre), f=fase(p.nombre,a.nombre);
+      t+=`<td class="cell td-${st}" onmousemove="tipMove(event)" onmouseenter="tipShow(event,'${p.nombre.replace(/'/g,"\\'")}','${a.nombre.replace(/'/g,"\\'")}')" onmouseleave="tipHide()">
+        <span class="est est-${st}">${NOM[st]}</span><div class="pct" style="margin-top:3px">${(f.total*100).toFixed(0)}%</div></td>`;
+    });
+    t+='</tr>';
+  });
+  document.getElementById('mtx').innerHTML=t+'</tbody>';
+})();
+
+/* ══ TAB 3 · AVANCE POR FASE ══ */
+(function(){
+  function bar(nombre, f){
+    return `<div class="cbar fbar"><div class="cl">${nombre}</div>
+      <div class="ct" style="display:flex">
+        <div style="width:${f.campo}%;background:#2a78d6" title="Campo ${f.campo.toFixed(0)}%"></div>
+        <div style="width:${f.oficina}%;background:#eda100" title="Oficina ${f.oficina.toFixed(0)}%"></div>
+        <div style="width:${f.aprobacion}%;background:#1baf7a" title="Aprobación ${f.aprobacion.toFixed(0)}%"></div>
+      </div>
+      <div class="cvv">C ${f.campo.toFixed(0)}% · O ${f.oficina.toFixed(0)}% · A ${f.aprobacion.toFixed(0)}%</div></div>`;
+  }
+  document.getElementById('faseBP').innerHTML = ACTIVOS.map(p=>{
+    const f = faseAgg(ACTIVIDADES, {w:a=>peso(p.nombre,a.nombre), f:a=>fase(p.nombre,a.nombre), pf:a=>PESO_FASE[a.nombre]});
+    return bar(p.nombre, f);
+  }).join('');
+  document.getElementById('faseBA').innerHTML = ACTIVIDADES.map(a=>{
+    const f = faseAgg(ACTIVOS, {w:p=>peso(p.nombre,a.nombre), f:p=>fase(p.nombre,a.nombre), pf:p=>PESO_FASE[a.nombre]});
+    return bar(a.nombre, f);
+  }).join('');
+})();
+
+/* ══ TAB 4 · COSTOS ══ */
+(function(){
+  const subT = PUENTES.reduce((s,p)=>s+p.presupuesto,0);
+  document.getElementById('ckpi').innerHTML=`
+   <div class="kpi big"><div class="n">${fM(subT)}</div><div class="t">Subtotal estudios (sin IVA)</div></div>
+   <div class="kpi"><div class="n" style="color:#64748b">${fM(subT*0.19)}</div><div class="t">IVA (19%)</div></div>
+   <div class="kpi ok"><div class="n">${fM(subT*1.19)}</div><div class="t">Valor del contrato (con IVA)</div></div>
+   <div class="kpi big"><div class="n">${PUENTES.length} × ${ACTIVIDADES.length}</div><div class="t">Puentes × actividades presupuestadas</div></div>`;
+
+  const porP=PUENTES.map(p=>[p.nombre,p.presupuesto]).sort((a,b)=>b[1]-a[1]);
+  const mP=Math.max(...porP.map(x=>x[1]),1);
+  document.getElementById('cbarP').innerHTML=porP.map(([n,v])=>
+    `<div class="cbar"><div class="cl">${n}</div><div class="ct"><div style="width:${v/mP*100}%;background:linear-gradient(90deg,var(--brand),var(--brand2));height:100%"></div></div><div class="cvv">${fM(v)}</div></div>`).join('');
+
+  const porA=ACTIVIDADES.map(a=>[a.nombre,PUENTES.reduce((s,p)=>s+peso(p.nombre,a.nombre),0)]).sort((a,b)=>b[1]-a[1]);
+  const mA=Math.max(...porA.map(x=>x[1]),1);
+  document.getElementById('cbarA').innerHTML=porA.map(([n,v])=>
+    `<div class="cbar"><div class="cl">${n}</div><div class="ct"><div style="width:${v/mA*100}%;background:linear-gradient(90deg,var(--brand),var(--brand2));height:100%"></div></div><div class="cvv">${fM(v)}</div></div>`).join('');
+
+  let t='<thead><tr><th class="volcell" style="min-width:260px">Actividad</th>';
+  PUENTES.forEach(p=>t+=`<th>${p.nombre}${p.estado==='SUSPENDIDO'?' <span class="badge-sb">SB</span>':''}</th>`); t+='<th>TOTAL</th></tr></thead><tbody>';
+  const mx=Math.max(...ACTIVIDADES.flatMap(a=>PUENTES.map(p=>peso(p.nombre,a.nombre))),1);
+  ACTIVIDADES.forEach(a=>{
+    const tot=PUENTES.reduce((s,p)=>s+peso(p.nombre,a.nombre),0);
+    t+=`<tr><td class="volcell" style="white-space:normal">${a.nombre}</td>`;
+    PUENTES.forEach(p=>{
+      const val=peso(p.nombre,a.nombre);
+      t+=val ? `<td style="text-align:right;background:rgba(59,130,246,${(val/mx*0.32).toFixed(3)});font-weight:600" title="${fF(val)}">${(val/1e6).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>`
+             : `<td style="text-align:center;color:var(--muted)">—</td>`;
+    });
+    t+=`<td style="text-align:right;font-weight:800">${tot?(tot/1e6).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1}):'—'}</td></tr>`;
+  });
+  t+='</tbody><tfoot><tr><td class="volcell">TOTAL sin IVA</td>';
+  PUENTES.forEach(p=>{ const s=ACTIVIDADES.reduce((a,act)=>a+peso(p.nombre,act.nombre),0);
+    t+=`<td style="text-align:right;font-weight:700" title="${fF(s)}">${(s/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})}</td>`; });
+  t+=`<td style="text-align:right;font-weight:800">${(subT/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})}</td></tr></tfoot>`;
+  document.getElementById('ctbl').innerHTML=t;
+})();
+
+/* ══ TAB 5 · TRAZABILIDAD ══ */
+(function(){
+  const pares=[];
+  ACTIVOS.forEach(p=>ACTIVIDADES.forEach(a=>{
+    const e=evsDe(p.nombre,a.nombre);
+    for(let i=0;i<e.length-1;i++)
+      if(e[i].ev==='ENTREGA'&&e[i+1].ev==='RESPUESTA')
+        pares.push({p:p.nombre,d:Math.round((D(e[i+1].f)-D(e[i].f))/86400000)});
+  }));
+  const porP={}; pares.forEach(x=>{ (porP[x.p]=porP[x.p]||[]).push(x.d); });
+  let s='<thead><tr><th class="volcell">Puente</th><th>Ciclos cerrados</th><th>Promedio (días)</th><th>Mínimo</th><th>Máximo</th></tr></thead><tbody>';
+  ACTIVOS.forEach(p=>{
+    const a=porP[p.nombre]||[];
+    if(!a.length){ s+=`<tr><td class="volcell">${p.nombre}</td><td colspan="4" style="text-align:center;color:var(--muted)">Sin ciclos cerrados</td></tr>`; return; }
+    const pr=a.reduce((x,y)=>x+y,0)/a.length;
+    s+=`<tr><td class="volcell">${p.nombre}</td><td>${a.length}</td>
+        <td style="font-weight:700;color:${pr>20?'var(--obs)':'var(--ok)'}">${pr.toFixed(1)}</td>
+        <td>${Math.min(...a)}</td><td>${Math.max(...a)}</td></tr>`;
+  });
+  const all=pares.map(p=>p.d);
+  if(all.length) s+=`<tr style="font-weight:800"><td class="volcell" style="color:var(--brand)">TOTAL PROYECTO</td>
+     <td>${all.length}</td><td style="color:var(--brand)">${(all.reduce((x,y)=>x+y,0)/all.length).toFixed(1)}</td>
+     <td>${Math.min(...all)}</td><td>${Math.max(...all)}</td></tr>`;
+  document.getElementById('ttbl').innerHTML=s+'</tbody>';
+
+  const stale=[];
+  ACTIVOS.forEach(p=>ACTIVIDADES.forEach(a=>{
+    const st=estado(p.nombre,a.nombre); if(st!=='T'&&st!=='C') return;
+    const d=diasSinMov(p.nombre,a.nombre); if(d!==null&&d>15) stale.push({p:p.nombre,a:a.nombre,st,d});
+  }));
+  stale.sort((x,y)=>y.d-x.d);
+  let st='<thead><tr><th class="volcell">Puente</th><th>Actividad</th><th>Estado</th><th>Días sin movimiento</th></tr></thead><tbody>';
+  if(!stale.length) st+='<tr><td colspan="4" style="text-align:center;color:var(--muted)">Ningún entregable lleva más de 15 días sin movimiento</td></tr>';
+  stale.forEach(x=>{
+    st+=`<tr><td class="volcell">${x.p}</td><td style="text-align:left">${x.a}</td>
+      <td><span class="est est-${x.st}">${NOM[x.st]}</span></td>
+      <td style="font-weight:700;color:${x.d>30?'#b91c1c':'#b45309'}">${x.d}</td></tr>`;
+  });
+  document.getElementById('stale').innerHTML=st+'</tbody>';
+})();
+
+}
+iniciar();
+</script>
+</body>
+</html>
