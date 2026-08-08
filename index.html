@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
-  --ok:#15803d; --okbg:#dcfce7; --reg:#a16207; --regbg:#fef9c3;
-  --rev:#2563eb; --revbg:#dbeafe; --obs:#c2410c; --obsbg:#ffedd5; --crit:#b91c1c; --critbg:#fee2e2;
-  --pen:#94a3b8; --penbg:#f1f5f9; --sb:#9333ea; --sbbg:#f3e8ff;
+  --ok:#22c55e; --okbg:#dcfce7; --reg:#eab308; --regbg:#fef9c3;
+  --rev:#3b82f6; --revbg:#dbeafe; --obs:#f97316; --obsbg:#ffedd5; --crit:#ef4444; --critbg:#fee2e2;
+  --pen:#94a3b8; --penbg:#f1f5f9; --sb:#a855f7; --sbbg:#f3e8ff;
   --ink:#0f172a; --ink2:#334155; --muted:#64748b; --line:#e2e8f0;
   --panel:#fff; --bg:#f4f6fa; --brand:#0b3b6f; --brand2:#1e5ba6;
 }
@@ -45,10 +45,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
 .est{display:inline-block;padding:2px 7px;border-radius:9px;font-size:9px;font-weight:700;white-space:nowrap}
 .est-A{background:var(--ok);color:#fff} .est-T{background:var(--rev);color:#fff}
 .est-C{background:var(--obs);color:#fff} .est-P{background:var(--pen);color:#fff} .est-S{background:var(--sb);color:#fff}
-.diasnum{font-size:15px;font-weight:800;color:var(--rev);margin-top:3px}
+.diasnum{display:inline-block;font-size:10px;font-weight:700;margin-top:3px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.55)}
 .pctmini{font-size:9px;color:var(--muted);margin-top:3px;cursor:default}
-.cv{font-weight:700;font-size:11px} .cf{font-size:10px} .cr{font-size:9px;color:var(--muted)}
-.c2{font-size:9px;color:var(--muted);border-top:1px dashed #cbd5e1;margin-top:3px;padding-top:2px}
+.cv{font-weight:700;font-size:14px} .cf{font-size:12px} .cr{font-size:10px;color:var(--muted)}
+.c2{font-size:11px;color:var(--muted);border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:3px}
 .cbar{display:flex;align-items:center;gap:8px;margin:4px 0}
 .cbar .cl{flex:0 0 240px;font-size:12px;text-align:right;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cbar .ct{flex:1;height:18px;background:#f1f5f9;border-radius:5px;overflow:hidden;display:flex}
@@ -82,10 +82,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
     <div class="pb-track" id="entregTrack"></div>
     <div class="pb-lab" id="entregLab"></div>
   </div>
-  <div class="card" id="segwrap" style="display:none">
-    <b style="color:var(--brand);font-size:13.5px">Radicado vs. aprobado — sobre el presupuesto del contrato</b>
-    <div class="seg-track" id="segTrack"></div>
-    <div class="seg-lab" id="segLab"></div>
   </div>
 
   <div class="tabs" id="tabs" style="display:none">
@@ -318,7 +314,6 @@ function recargar(){
   document.getElementById('cargando').style.display='block';
   document.getElementById('cargando').innerHTML='<div style="font-size:15px;font-weight:600;color:var(--brand)">Actualizando…</div>';
   document.getElementById('tabs').style.display='none';
-  document.getElementById('segwrap').style.display='none';
   document.getElementById('entregwrap').style.display='none';
   ['t1','t2','t3','t4','t5'].forEach(t=>document.getElementById(t).style.display='none');
   iniciar();
@@ -328,7 +323,6 @@ async function iniciar(){
     const {data,avisos}=await cargarDatos();
     document.getElementById('cargando').style.display='none';
     document.getElementById('tabs').style.display='flex';
-    document.getElementById('segwrap').style.display='block';
     document.getElementById('entregwrap').style.display='block';
     document.getElementById('t1').style.display='block';
     render(data);
@@ -344,17 +338,17 @@ async function iniciar(){
 
 /* Clasificación de color en 4 niveles, más saturados que un semáforo de 3 */
 function nivel(pct){
-  if(pct>=70) return {color:'#15803d', label:'En proceso'};
-  if(pct>=50) return {color:'#ca8a04', label:'Regular'};
-  if(pct>=30) return {color:'#ea580c', label:'Atrasado'};
-  return {color:'#dc2626', label:'Crítico'};
+  if(pct>=70) return {color:'#22c55e', label:'En proceso'};
+  if(pct>=50) return {color:'#eab308', label:'Regular'};
+  if(pct>=30) return {color:'#f97316', label:'Atrasado'};
+  return {color:'#ef4444', label:'Crítico'};
 }
 const LEG_NIVELES = `
-  <span><span class="dot" style="background:#15803d"></span>En proceso — ≥70%</span>
-  <span><span class="dot" style="background:#ca8a04"></span>Regular — 50% a 70%</span>
-  <span><span class="dot" style="background:#ea580c"></span>Atrasado — 30% a 50%</span>
-  <span><span class="dot" style="background:#dc2626"></span>Crítico — menos de 30%</span>`;
-const LEG_NIVELES_SB = LEG_NIVELES + `<span><span class="dot" style="background:#9333ea"></span>Suspendido</span>`;
+  <span><span class="dot" style="background:#22c55e"></span>En proceso — ≥70%</span>
+  <span><span class="dot" style="background:#eab308"></span>Regular — 50% a 70%</span>
+  <span><span class="dot" style="background:#f97316"></span>Atrasado — 30% a 50%</span>
+  <span><span class="dot" style="background:#ef4444"></span>Crítico — menos de 30%</span>`;
+const LEG_NIVELES_SB = LEG_NIVELES + `<span><span class="dot" style="background:#a855f7"></span>Suspendido</span>`;
 
 function render(DATA){
 const {PUENTES, ACTIVIDADES, PESO, PESO_FASE, FASE, EVS} = DATA;
@@ -454,14 +448,6 @@ window.renderResumen=function(){
    <div class="kpi"><div class="n" style="color:var(--brand2)">${pE.toFixed(1)}%</div><div class="t">Ejecutado ponderado — ${fM(EJE)}</div></div>
    <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>`;
 
-  const segAprob=pA, segRad=Math.max(0,pR-pA), segResto=Math.max(0,100-segAprob-segRad);
-  document.getElementById('segTrack').innerHTML=
-    `<div style="width:${segAprob}%;background:var(--ok)"></div><div style="width:${segRad}%;background:var(--rev)"></div>`;
-  document.getElementById('segLab').innerHTML=
-    `<span><span class="dot" style="background:var(--ok)"></span>Aprobado <b>${segAprob.toFixed(1)}%</b> — ${fM(APR)}</span>
-     <span><span class="dot" style="background:var(--rev)"></span>Radicado sin aprobar <b>${segRad.toFixed(1)}%</b> — ${fM(Math.max(0,RAD-APR))}</span>
-     <span><span class="dot" style="background:var(--pen)"></span>Pendiente por radicar <b>${segResto.toFixed(1)}%</b></span>`;
-
   /* Entregables: siempre sobre los 16 puentes activos (San Benito no tiene AVANCE ni TRAZABILIDAD) */
   const cnt={A:0,T:0,C:0,P:0};
   ACTIVOS.forEach(p=>ACTIVIDADES.forEach(a=>{ cnt[estado(p.nombre,a.nombre)]++; }));
@@ -476,7 +462,7 @@ window.renderResumen=function(){
     .sort((a,b)=>b.pct-a.pct);
   const mx=Math.max(...rank.map(r=>r.pct),1);
   document.getElementById('rankPuentes').innerHTML=rank.map(r=>{
-    const col = r.estado==='SUSPENDIDO' ? '#9333ea' : nivel(r.pct).color;
+    const col = r.estado==='SUSPENDIDO' ? '#a855f7' : nivel(r.pct).color;
     return `<div class="cbar"><div class="cl">${r.nombre}${r.estado==='SUSPENDIDO'?'<span class="badge-sb">SUSPENDIDO</span>':''}</div>
       <div class="ct"><div style="width:${r.pct/mx*100}%;background:${col};height:100%"></div></div>
       <div class="cvv">${r.pct.toFixed(1)}%</div></div>`;
@@ -504,10 +490,9 @@ renderResumen();
       if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S">—</td>`; return; }
       const st=estado(p.nombre,a.nombre), en=ultEntrega(p.nombre,a.nombre), re=ultResp(p.nombre,a.nombre), f=fase(p.nombre,a.nombre);
       let in_='';
-      if(en) in_+=`<div class="cv">${en.v||'V'}</div><div class="cf">${fmt(en.f)}</div>`;
-      else   in_+='<span style="color:var(--muted);font-size:10px">Sin entregar</span>';
-      if(re) in_+=`<div class="c2">${re.v||'R'} · ${fmt(re.f)}${re.res&&re.res!=='OBSERVACIONES'?'<br><b style="color:var(--ok)">'+re.res+'</b>':''}</div>`;
-      in_+=`<div class="pctmini">C ${(f.campo*100).toFixed(0)}% · O ${(f.oficina*100).toFixed(0)}% · A ${(f.aprobacion*100).toFixed(0)}%</div>`;
+      if(en) in_+=`<div class="cv">V${en.v||''}</div><div class="cf">${fmt(en.f)}</div>`;
+      else   in_+='<span style="color:var(--muted);font-size:11px">Sin entregar</span>';
+      if(re) in_+=`<div class="c2">R${re.v||''} · ${fmt(re.f)}${re.res&&re.res!=='OBSERVACIONES'?'<br><b style="color:var(--ok)">'+re.res+'</b>':''}</div>`;
       t+=`<td class="td-${st}" onmousemove="tipMove(event)" onmouseenter="tipShow(event,'${p.nombre.replace(/'/g,"\\'")}','${a.nombre.replace(/'/g,"\\'")}')" onmouseleave="tipHide()">${in_}</td>`;
     });
     t+='</tr>';
@@ -525,7 +510,7 @@ renderResumen();
     PUENTES.forEach(p=>{
       if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S"><span class="est est-S">—</span></td>`; return; }
       const st=estado(p.nombre,a.nombre), dd=diasEnInterv(p.nombre,a.nombre);
-      t+=`<td class="td-${st}"><span class="est est-${st}">${NOM[st]}</span>${dd!==null?`<div class="diasnum" style="color:${dd>30?'#b91c1c':dd>15?'#c2410c':'var(--rev)'}">${dd}</div>`:''}</td>`;
+      t+=`<td class="td-${st}"><span class="est est-${st}">${NOM[st]}</span>${dd!==null?`<div class="diasnum" style="color:${dd>30?'#b91c1c':dd>15?'#c2410c':'#334155'}">${dd}</div>`:''}</td>`;
     });
     t+='</tr>';
   });
