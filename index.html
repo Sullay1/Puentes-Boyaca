@@ -148,10 +148,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
     <h3 class="sec">Costos del proyecto — presupuesto Boyacá</h3>
     <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin:6px 0 14px" id="ckpi"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start">
-      <div><h3 class="sec" style="font-size:13.5px">Costo por puente (sin IVA)</h3><div id="cbarP"></div></div>
-      <div><h3 class="sec" style="font-size:13.5px">Costo por actividad — todo el proyecto (sin IVA)</h3><div id="cbarA"></div></div>
+      <div><h3 class="sec" style="font-size:13.5px">Costo por puente (con IVA)</h3><div id="cbarP"></div></div>
+      <div><h3 class="sec" style="font-size:13.5px">Costo por actividad — todo el proyecto (con IVA)</h3><div id="cbarA"></div></div>
     </div>
-    <h3 class="sec" style="margin-top:20px">Matriz de costos: Actividad × Puente (sin IVA, $ millones)</h3>
+    <h3 class="sec" style="margin-top:20px">Matriz de costos: Actividad × Puente (con IVA, $ millones)</h3>
     <div style="overflow:auto;max-height:70vh"><table class="mtable" id="ctbl"></table></div>
     <div class="note">El subtotal y el costo por puente usan el presupuesto de la hoja PUENTES (siempre completo, incluye San Benito). La matriz de abajo usa el desglose de la hoja PRESUPUESTO.</div>
   </div>
@@ -379,6 +379,12 @@ function estado(p,a){
 function ultEntrega(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='ENTREGA'); return e.length?e[e.length-1]:null; }
 function ultResp(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='RESPUESTA'); return e.length?e[e.length-1]:null; }
 function priEntrega(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='ENTREGA'); return e.length?e[0]:null; }
+/* La hoja ya trae V1/R1; esto es solo por si alguna fila vieja quedó con el número solo. */
+function verLbl(prefijo, v){
+  v=(v||'').toString().trim();
+  if(!v) return '';
+  return /^[VvRr]/.test(v) ? v.toUpperCase() : prefijo+v;
+}
 function diasEnInterv(p,a){
   if(estado(p,a)!=='T') return null;
   const en=ultEntrega(p,a); if(!en) return null;
@@ -447,15 +453,16 @@ window.renderResumen=function(){
    <div class="kpi"><div class="n" style="color:var(--brand2)">${pE.toFixed(1)}%</div><div class="t">Ejecutado ponderado — ${fM(EJE)}</div></div>
    <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>`;
 
-  /* Entregables: siempre sobre los 16 puentes activos (San Benito no tiene AVANCE ni TRAZABILIDAD) */
+  /* Entregables: usa la misma base que los $ de arriba, respetando el interruptor de San Benito */
   const cnt={A:0,T:0,C:0,P:0};
   ACTIVOS.forEach(p=>ACTIVIDADES.forEach(a=>{ cnt[estado(p.nombre,a.nombre)]++; }));
-  const tot=ACTIVOS.length*ACTIVIDADES.length, mov=tot-cnt.P;
+  const susp = excluirSB ? 0 : ACTIVIDADES.length; // 16 "entregables" de San Benito, si está incluido
+  const tot=ACTIVOS.length*ACTIVIDADES.length+susp, mov=tot-cnt.P-susp;
   const segs=[['A',cnt.A,'var(--ok)'],['T',cnt.T,'var(--rev)'],['C',cnt.C,'var(--obs)'],['P',cnt.P,'var(--pen)']];
+  if(susp) segs.push(['S',susp,'var(--sb)']);
   document.getElementById('entregTitle').textContent=`Avance por número de entregables — ${mov} de ${tot} con movimiento (${(mov/tot*100).toFixed(1)}%)`;
   document.getElementById('entregTrack').innerHTML=segs.map(([k,v,c])=>v?`<div style="width:${v/tot*100}%;background:${c}"></div>`:'').join('');
-  document.getElementById('entregLab').innerHTML=segs.map(([k,v,c])=>`<span><span class="dot" style="background:${c}"></span>${NOM[k]}: <b>${v}</b></span>`).join('')
-    +`<span style="color:var(--muted)">San Benito no cuenta aquí — no tiene actividad registrada</span>`;
+  document.getElementById('entregLab').innerHTML=segs.map(([k,v,c])=>`<span><span class="dot" style="background:${c}"></span>${NOM[k]}: <b>${v}</b></span>`).join('');
 
   const rank=PUENTES.map(p=>({nombre:p.nombre,estado:p.estado,pct:p.estado==='SUSPENDIDO'?0:avancePuente(p.nombre)}))
     .sort((a,b)=>b.pct-a.pct);
@@ -489,9 +496,9 @@ renderResumen();
       if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S">—</td>`; return; }
       const st=estado(p.nombre,a.nombre), en=ultEntrega(p.nombre,a.nombre), re=ultResp(p.nombre,a.nombre), f=fase(p.nombre,a.nombre);
       let in_='';
-      if(en) in_+=`<div class="cv">V${en.v||''}</div><div class="cf">${fmt(en.f)}</div>`;
+      if(en) in_+=`<div class="cv">${verLbl('V',en.v)}</div><div class="cf">${fmt(en.f)}</div>`;
       else   in_+='<span style="color:var(--muted);font-size:11px">Sin entregar</span>';
-      if(re) in_+=`<div class="c2">R${re.v||''} · ${fmt(re.f)}${re.res&&re.res!=='OBSERVACIONES'?'<br><b style="color:var(--ok)">'+re.res+'</b>':''}</div>`;
+      if(re) in_+=`<div class="c2">${verLbl('R',re.v)} · ${fmt(re.f)}${re.res&&re.res!=='OBSERVACIONES'?'<br><b style="color:var(--ok)">'+re.res+'</b>':''}</div>`;
       t+=`<td class="td-${st}" onmousemove="tipMove(event)" onmouseenter="tipShow(event,'${p.nombre.replace(/'/g,"\\'")}','${a.nombre.replace(/'/g,"\\'")}')" onmouseleave="tipHide()">${in_}</td>`;
     });
     t+='</tr>';
@@ -515,7 +522,7 @@ renderResumen();
   });
   document.getElementById('mtxEst').innerHTML=t+'</tbody>';
 
-  let cb='<thead><tr><th class="actcell">Puente</th><th>Actividades aprobadas</th><th>Valor cobrable sin IVA</th><th>Con IVA</th><th>% del puente</th></tr></thead><tbody>';
+  let cb='<thead><tr><th class="actcell">Puente</th><th>Actividades aprobadas</th><th>Valor cobrable con IVA</th><th>Sin IVA</th><th>% del puente</th></tr></thead><tbody>';
   let ctot=0, cn=0;
   ACTIVOS.forEach(p=>{
     let v=0,n=0,tv=0;
@@ -523,13 +530,13 @@ renderResumen();
     ctot+=v; cn+=n;
     cb+=`<tr><td class="actcell">${p.nombre}</td><td>${n}</td>
       <td style="text-align:right;font-weight:700">${v?fF(v):'—'}</td>
-      <td style="text-align:right">${v?fF(v*1.19):'—'}</td>
+      <td style="text-align:right">${v?fF(v/1.19):'—'}</td>
       <td style="color:var(--ok);font-weight:700">${tv?(v/tv*100).toFixed(1):'0.0'}%</td></tr>`;
   });
   const TOTP=ACTIVOS.reduce((s,p)=>s+ACTIVIDADES.reduce((a,act)=>a+peso(p.nombre,act.nombre),0),0);
   cb+=`<tr style="font-weight:800"><td class="actcell" style="color:var(--ok)">TOTAL</td>
     <td>${cn}</td><td style="text-align:right;color:var(--ok)">${fF(ctot)}</td>
-    <td style="text-align:right;color:var(--ok)">${fF(ctot*1.19)}</td>
+    <td style="text-align:right;color:var(--ok)">${fF(ctot/1.19)}</td>
     <td style="color:var(--ok)">${TOTP?(ctot/TOTP*100).toFixed(1):'0.0'}%</td></tr>`;
   document.getElementById('cobro').innerHTML=cb+'</tbody>';
 })();
@@ -553,13 +560,13 @@ renderResumen();
       <div class="cvv">C ${fc.toFixed(0)}% · O ${fo.toFixed(0)}% · A ${fa.toFixed(0)}%</div></div>`;
   }).join('');
 
-  let s='<thead><tr><th class="actcell">Puente</th><th>Valor sin IVA</th><th>% del<br>proyecto</th>'
+  let s='<thead><tr><th class="actcell">Puente</th><th>Valor con IVA</th><th>% del<br>proyecto</th>'
     +'<th colspan="2" style="background:#dbeafe;color:#1e40af">Radicado</th>'
     +'<th colspan="2" style="background:#dcfce7;color:#15803d">Aprobado</th>'
     +'<th colspan="2" style="background:#fef3c7;color:#92400e">Brecha por aprobar</th></tr>'
-    +'<tr><th></th><th></th><th></th><th style="background:#eff6ff">%</th><th style="background:#eff6ff">$ sin IVA</th>'
-    +'<th style="background:#f0fdf4">%</th><th style="background:#f0fdf4">$ sin IVA</th>'
-    +'<th style="background:#fffbeb">$ sin IVA</th><th style="background:#fffbeb">$ con IVA</th></tr></thead><tbody>';
+    +'<tr><th></th><th></th><th></th><th style="background:#eff6ff">%</th><th style="background:#eff6ff">$ con IVA</th>'
+    +'<th style="background:#f0fdf4">%</th><th style="background:#f0fdf4">$ con IVA</th>'
+    +'<th style="background:#fffbeb">$ con IVA</th><th style="background:#fffbeb">$ sin IVA</th></tr></thead><tbody>';
   const TOTALL=PUENTES.reduce((s,p)=>s+p.presupuesto,0);
   let sumR=0,sumA=0;
   PUENTES.forEach(p=>{
@@ -574,14 +581,14 @@ renderResumen();
       <td style="font-weight:700;color:var(--rev)">${pr.toFixed(1)}%</td><td style="text-align:right;color:var(--rev)">${r?fF(r):'—'}</td>
       <td style="font-weight:700;color:var(--ok)">${pa.toFixed(1)}%</td><td style="text-align:right;color:var(--ok)">${ap?fF(ap):'—'}</td>
       <td style="text-align:right;font-weight:700;color:var(--obs)">${brecha>0.5?fF(brecha):'—'}</td>
-      <td style="text-align:right;color:var(--obs)">${brecha>0.5?fF(brecha*1.19):'—'}</td></tr>`;
+      <td style="text-align:right;color:var(--obs)">${brecha>0.5?fF(brecha/1.19):'—'}</td></tr>`;
   });
   const $B=sumR-sumA;
   s+=`<tr style="font-weight:800"><td class="actcell" style="color:var(--brand)">TOTAL</td>
     <td style="text-align:right;color:var(--brand)">${fF(TOTALL)}</td><td>100%</td>
     <td style="color:var(--rev)">${(sumR/TOTALL*100).toFixed(1)}%</td><td style="text-align:right;color:var(--rev)">${fF(sumR)}</td>
     <td style="color:var(--ok)">${(sumA/TOTALL*100).toFixed(1)}%</td><td style="text-align:right;color:var(--ok)">${fF(sumA)}</td>
-    <td style="text-align:right;color:var(--obs)">${fF($B)}</td><td style="text-align:right;color:var(--obs)">${fF($B*1.19)}</td></tr>`;
+    <td style="text-align:right;color:var(--obs)">${fF($B)}</td><td style="text-align:right;color:var(--obs)">${fF($B/1.19)}</td></tr>`;
   document.getElementById('avpTbl').innerHTML=s+'</tbody>';
 })();
 
@@ -589,9 +596,9 @@ renderResumen();
 (function(){
   const subT = PUENTES.reduce((s,p)=>s+p.presupuesto,0);
   document.getElementById('ckpi').innerHTML=`
-   <div class="kpi big"><div class="n">${fM(subT)}</div><div class="t">Subtotal estudios (sin IVA)</div></div>
-   <div class="kpi"><div class="n" style="color:#64748b">${fM(subT*0.19)}</div><div class="t">IVA (19%)</div></div>
-   <div class="kpi ok"><div class="n">${fM(subT*1.19)}</div><div class="t">Valor del contrato (con IVA)</div></div>
+   <div class="kpi big"><div class="n">${fM(subT)}</div><div class="t">Valor del contrato (con IVA)</div></div>
+   <div class="kpi"><div class="n" style="color:#64748b">${fM(subT-subT/1.19)}</div><div class="t">IVA incluido (19%)</div></div>
+   <div class="kpi ok"><div class="n">${fM(subT/1.19)}</div><div class="t">Subtotal estudios (sin IVA)</div></div>
    <div class="kpi big"><div class="n">${PUENTES.length} × ${ACTIVIDADES.length}</div><div class="t">Puentes × actividades presupuestadas</div></div>`;
 
   const porP=PUENTES.map(p=>[p.nombre,p.presupuesto]).sort((a,b)=>b[1]-a[1]);
@@ -617,7 +624,7 @@ renderResumen();
     });
     t+=`<td style="text-align:right;font-weight:800">${tot?(tot/1e6).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1}):'—'}</td></tr>`;
   });
-  t+='</tbody><tfoot><tr><td class="actcell">TOTAL sin IVA</td>';
+  t+='</tbody><tfoot><tr><td class="actcell">TOTAL con IVA</td>';
   PUENTES.forEach(p=>{ const s=ACTIVIDADES.reduce((a,act)=>a+peso(p.nombre,act.nombre),0);
     t+=`<td style="text-align:right;font-weight:700" title="${fF(s)}">${(s/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})}</td>`; });
   t+=`<td style="text-align:right;font-weight:800">${(subT/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})}</td></tr></tfoot>`;
