@@ -38,13 +38,18 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
 .note{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.55}
 .mtable{border-collapse:separate;border-spacing:0;width:100%;font-size:11.5px}
 .mtable th{background:#eef3fa;color:var(--brand);font-weight:700;padding:7px 6px;border:1px solid var(--line);position:sticky;top:0;z-index:2;text-align:center}
-.mtable td{border:1px solid var(--line);padding:5px 6px;vertical-align:middle;text-align:center}
+.mtable td{border:1px solid var(--line);padding:5px 6px;vertical-align:middle;text-align:center;height:1px}
+#mtxDet td{min-height:70px}
+#mtxEst td{min-height:46px}
+#ctbl td{min-height:34px}
 .actcell{background:#fbfcfe;font-weight:600;color:var(--ink2);white-space:normal;position:sticky;left:0;z-index:1;text-align:left!important;min-width:190px;max-width:220px;font-size:11px}
 .td-A{background:var(--okbg)} .td-T{background:var(--revbg)}
 .td-C{background:var(--obsbg)} .td-P{background:var(--penbg)} .td-S{background:repeating-linear-gradient(45deg,#f3e8ff,#f3e8ff 6px,#ede4fb 6px,#ede4fb 12px)}
+.td-N{background:#fee2e2}
 .est{display:inline-block;padding:2px 7px;border-radius:9px;font-size:9px;font-weight:700;white-space:nowrap}
 .est-A{background:var(--ok);color:#fff} .est-T{background:var(--rev);color:#fff}
 .est-C{background:var(--obs);color:#fff} .est-P{background:var(--pen);color:#fff} .est-S{background:var(--sb);color:#fff}
+.est-N{background:#dc2626;color:#fff}
 .diasnum{display:inline-block;font-size:10px;font-weight:700;margin-top:3px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.55)}
 .pctmini{font-size:9px;color:var(--muted);margin-top:3px;cursor:default}
 .cv{font-weight:700;font-size:14px} .cf{font-size:12px} .cr{font-size:10px;color:var(--muted)}
@@ -109,6 +114,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
       <span><span class="dot" style="background:var(--obsbg);border:1px solid var(--obs)"></span>En consultoría</span>
       <span><span class="dot" style="background:var(--penbg);border:1px solid var(--pen)"></span>No entregado</span>
       <span><span class="dot" style="background:#f3e8ff;border:1px solid var(--sb)"></span>Suspendido</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #dc2626"></span>No aplica — el estudio no está en el alcance de ese puente</span>
     </div>
     <div style="overflow:auto;max-height:75vh"><table class="mtable" id="mtxDet"></table></div>
     <div class="note">Cada celda muestra la <b>última versión entregada</b> (V) y su fecha, y debajo la <b>última respuesta</b> de interventoría (R) si la hay. Los tres números pequeños son el % de campo, oficina y aprobación registrado en AVANCE. Pase el cursor por una celda para ver el historial completo de fechas.</div>
@@ -122,6 +128,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
       <span><span class="dot" style="background:var(--obsbg);border:1px solid var(--obs)"></span>En consultoría</span>
       <span><span class="dot" style="background:var(--penbg);border:1px solid var(--pen)"></span>No entregado</span>
       <span><span class="dot" style="background:#f3e8ff;border:1px solid var(--sb)"></span>Suspendido</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #dc2626"></span>No aplica</span>
     </div>
     <div style="overflow:auto;max-height:70vh"><table class="mtable" id="mtxEst"></table></div>
     <div class="note">El estado se deduce de la fila más reciente de TRAZABILIDAD: una <b>ENTREGA</b> sin respuesta después dice "en interventoría"; una <b>RESPUESTA</b> con resultado APROBACION dice "aprobado"; con OBSERVACIONES vuelve a "en consultoría".</div>
@@ -453,16 +460,21 @@ window.renderResumen=function(){
    <div class="kpi"><div class="n" style="color:var(--brand2)">${pE.toFixed(1)}%</div><div class="t">Ejecutado ponderado — ${fM(EJE)}</div></div>
    <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>`;
 
-  /* Entregables: usa la misma base que los $ de arriba, respetando el interruptor de San Benito */
-  const cnt={A:0,T:0,C:0,P:0};
-  ACTIVOS.forEach(p=>ACTIVIDADES.forEach(a=>{ cnt[estado(p.nombre,a.nombre)]++; }));
+  /* Entregables: usa la misma base que los $ de arriba, respetando el interruptor de San Benito.
+     Las celdas "no aplica" (sin presupuesto asignado) no cuentan ni como entregadas ni como pendientes. */
+  const cnt={A:0,T:0,C:0,P:0,N:0};
+  ACTIVOS.forEach(p=>ACTIVIDADES.forEach(a=>{
+    if(!peso(p.nombre,a.nombre)){ cnt.N++; return; }
+    cnt[estado(p.nombre,a.nombre)]++;
+  }));
   const susp = excluirSB ? 0 : ACTIVIDADES.length; // 16 "entregables" de San Benito, si está incluido
-  const tot=ACTIVOS.length*ACTIVIDADES.length+susp, mov=tot-cnt.P-susp;
+  const tot=ACTIVOS.length*ACTIVIDADES.length+susp-cnt.N, mov=tot-cnt.P-susp;
   const segs=[['A',cnt.A,'var(--ok)'],['T',cnt.T,'var(--rev)'],['C',cnt.C,'var(--obs)'],['P',cnt.P,'var(--pen)']];
   if(susp) segs.push(['S',susp,'var(--sb)']);
   document.getElementById('entregTitle').textContent=`Avance por número de entregables — ${mov} de ${tot} con movimiento (${(mov/tot*100).toFixed(1)}%)`;
   document.getElementById('entregTrack').innerHTML=segs.map(([k,v,c])=>v?`<div style="width:${v/tot*100}%;background:${c}"></div>`:'').join('');
-  document.getElementById('entregLab').innerHTML=segs.map(([k,v,c])=>`<span><span class="dot" style="background:${c}"></span>${NOM[k]}: <b>${v}</b></span>`).join('');
+  document.getElementById('entregLab').innerHTML=segs.map(([k,v,c])=>`<span><span class="dot" style="background:${c}"></span>${NOM[k]}: <b>${v}</b></span>`).join('')
+    +(cnt.N?`<span style="color:var(--muted)">${cnt.N} no aplica (no contados)</span>`:'');
 
   const rank=PUENTES.map(p=>({nombre:p.nombre,estado:p.estado,pct:p.estado==='SUSPENDIDO'?0:avancePuente(p.nombre)}))
     .sort((a,b)=>b.pct-a.pct);
@@ -494,6 +506,7 @@ renderResumen();
     t+=`<tr><td class="actcell">${a.nombre}</td>`;
     PUENTES.forEach(p=>{
       if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S">—</td>`; return; }
+      if(!peso(p.nombre,a.nombre)){ t+=`<td class="td-N"><span style="color:#991b1b;font-size:10.5px;font-weight:600">No aplica</span></td>`; return; }
       const st=estado(p.nombre,a.nombre), en=ultEntrega(p.nombre,a.nombre), re=ultResp(p.nombre,a.nombre), f=fase(p.nombre,a.nombre);
       let in_='';
       if(en) in_+=`<div class="cv">${verLbl('V',en.v)}</div><div class="cf">${fmt(en.f)}</div>`;
@@ -515,6 +528,7 @@ renderResumen();
     t+=`<tr><td class="actcell">${a.nombre}</td>`;
     PUENTES.forEach(p=>{
       if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S"><span class="est est-S">—</span></td>`; return; }
+      if(!peso(p.nombre,a.nombre)){ t+=`<td class="td-N"><span class="est est-N">No aplica</span></td>`; return; }
       const st=estado(p.nombre,a.nombre), dd=diasEnInterv(p.nombre,a.nombre);
       t+=`<td class="td-${st}"><span class="est est-${st}">${NOM[st]}</span>${dd!==null?`<div class="diasnum" style="color:${dd>30?'#b91c1c':dd>15?'#c2410c':'#334155'}">${dd}</div>`:''}</td>`;
     });
