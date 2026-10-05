@@ -20,7 +20,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
 .header .sub{opacity:.92;font-size:12.5px;margin-top:3px}
 .header .cut{margin-left:auto;text-align:right;font-size:12.5px;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25)}
 .hswitch{display:flex;align-items:center;gap:7px;font-size:12.5px;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25);cursor:pointer;user-select:none}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:14px 0}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
 .kpi .n{font-size:24px;font-weight:800;line-height:1.1}
 .kpi .t{color:var(--muted);font-size:11.5px;margin-top:2px}
@@ -453,12 +453,14 @@ window.renderResumen=function(){
   const excluirSB=document.getElementById('chkSB').checked;
   const {TOT,RAD,APR,EJE}=calcAgg(excluirSB);
   const pE=TOT?EJE/TOT*100:0, pR=TOT?RAD/TOT*100:0, pA=TOT?APR/TOT*100:0;
+  const pT=pR+pA, vT=RAD+APR; // % avance técnico = radicado + aprobado (respeta el interruptor de San Benito vía TOT)
 
   document.getElementById('kpis').innerHTML=`
    <div class="kpi big"><div class="n">${fM(TOT)}</div><div class="t">Presupuesto ${excluirSB?'(sin San Benito)':'(con San Benito)'}</div></div>
    <div class="kpi rev"><div class="n">${pR.toFixed(1)}%</div><div class="t">Radicado — ${fM(RAD)}</div></div>
    <div class="kpi"><div class="n" style="color:var(--brand2)">${pE.toFixed(1)}%</div><div class="t">Ejecutado ponderado — ${fM(EJE)}</div></div>
-   <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>`;
+   <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>
+   <div class="kpi"><div class="n" style="color:#7c3aed">${pT.toFixed(1)}%</div><div class="t">% Avance técnico (radicado + aprobado) — ${fM(vT)}</div></div>`;
 
   /* Entregables: usa la misma base que los $ de arriba, respetando el interruptor de San Benito.
      Las celdas "no aplica" (sin presupuesto asignado) no cuentan ni como entregadas ni como pendientes. */
