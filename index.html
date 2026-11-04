@@ -168,7 +168,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
     <h3 class="sec">Acta de cobro — qué se ha cobrado y qué está listo para la siguiente acta</h3>
     <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin:6px 0 14px" id="akpi"></div>
     <div class="legend" id="aleg"></div>
-    <div style="overflow:auto;max-height:75vh"><table class="mtable" id="mtxActa"></table></div>
+    <div style="display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap">
+      <button onclick="guardarProyBtn()" style="padding:5px 14px;border-radius:8px;border:1px solid #16a34a;background:#dcfce7;color:#166534;font-weight:600;font-size:12px;cursor:pointer">Guardar proyección</button>
+      <button onclick="limpiarProy()" style="padding:5px 14px;border-radius:8px;border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;font-weight:600;font-size:12px;cursor:pointer">Limpiar</button>
+      <span id="proyMsg" style="font-size:12px;color:#166534"></span>
+    </div>
+    <div id="actaWrap" style="overflow:auto;max-height:75vh"><table class="mtable" id="mtxActa"></table></div>
     <div class="note" id="anota"></div>
   </div>
 </div>
@@ -685,7 +690,15 @@ renderResumen();
 })();
 
 /* ══ TAB 6 · ACTA DE COBRO ══ */
-(function(){
+const PROY_KEY='proyeccion_acta_IPO008_2025';
+let PROY={};
+try{ PROY=JSON.parse(localStorage.getItem(PROY_KEY)||'{}')||{}; }catch(e){ PROY={}; }
+function guardarProy(){ try{ localStorage.setItem(PROY_KEY,JSON.stringify(PROY)); return true; }catch(e){ return false; } }
+window.toggleProy=function(p,a){ const k=p+'|'+a; if(PROY[k]) delete PROY[k]; else PROY[k]=1; guardarProy(); renderActa(); };
+window.limpiarProy=function(){ if(!Object.keys(PROY).length) return; if(confirm('¿Borrar toda la proyección del acta siguiente?')){ PROY={}; guardarProy(); renderActa(); } };
+window.guardarProyBtn=function(){ const ok=guardarProy(); const m=document.getElementById('proyMsg'); m.textContent=ok?'✓ Guardado en este navegador':'No se pudo guardar (navegador sin almacenamiento)'; setTimeout(()=>{m.textContent='';},2500); };
+window.renderActa=function(){
+  const wrap=document.getElementById('actaWrap'), sl=wrap.scrollLeft, st0=wrap.scrollTop;
   const COLS={1:['#e0e7ff','#4f46e5'],2:['#ccfbf1','#0f766e'],3:['#fce7f3','#be185d'],4:['#fef3c7','#b45309'],5:['#e0f2fe','#0369a1']};
   const col=n=>COLS[((n-1)%5)+1];
   const nums=[...new Set(Object.values(ACTA))].sort((a,b)=>a-b);
@@ -698,17 +711,22 @@ renderResumen();
   const TOTC=PUENTES.reduce((s,p)=>s+p.presupuesto,0);
   const vCob=sum((p,a)=>cobrado(p,a)), vPen=sum(pend);
   const sinAprob=cnt((p,a)=>cobrado(p,a)&&estado(p,a)!=='A');
+  // proyección: casillas blancas elegidas a mano (se descartan si ya se cobraron o quedaron aprobadas)
+  const proy=(p,a)=>!!PROY[p+'|'+a]&&!cobrado(p,a)&&estado(p,a)!=='A'&&peso(p,a)>0;
+  const vProy=sum(proy), nProy=cnt(proy);
 
   document.getElementById('akpi').innerHTML=
     nums.map(n=>`<div class="kpi" style="border-top:3px solid ${col(n)[1]}"><div class="n" style="color:${col(n)[1]}">${fF(sum((p,a)=>cobrado(p,a)===n))}</div><div class="t">Valor del acta ${n} — ${cnt((p,a)=>cobrado(p,a)===n)} componentes</div></div>`).join('')
    +`<div class="kpi ok" style="border-top:3px solid var(--ok)"><div class="n">${fF(vPen)}</div><div class="t">Aprobado y sin cobrar — posible acta ${sig} (${cnt(pend)} componentes)</div></div>`
+   +`<div class="kpi" style="border-top:3px solid #f97316"><div class="n" style="color:#ea580c">${fF(vPen+vProy)}</div><div class="t">Proyección acta ${sig}: por cobrar ${fM(vPen)} + seleccionado ${fM(vProy)} (${nProy} componentes)</div></div>`
    +`<div class="kpi big"><div class="n">${(TOTC?vCob/TOTC*100:0).toFixed(1)}%</div><div class="t">Cobrado del contrato (${fM(vCob)} de ${fM(TOTC)})</div></div>`;
-  document.getElementById('akpi').style.gridTemplateColumns=`repeat(${nums.length+2},1fr)`;
+  document.getElementById('akpi').style.gridTemplateColumns=`repeat(${nums.length+3},1fr)`;
 
   document.getElementById('aleg').innerHTML=
     nums.map(n=>`<span><span class="dot" style="background:${col(n)[0]};border:1px solid ${col(n)[1]}"></span><b>Acta ${n}</b> — ya cobrado</span>`).join('')
    +`<span><span class="dot" style="background:var(--okbg);border:1px dashed var(--ok)"></span><b>Aprobado, sin cobrar</b> — iría en el acta ${sig}</span>`
-   +`<span><span class="dot" style="background:#fff;border:1px solid var(--line)"></span>Aún sin aprobar</span>`
+   +`<span><span class="dot" style="background:#ffedd5;border:1px solid #f97316"></span><b>Proyectado</b> — lo marqué yo para el acta ${sig}</span>`
+   +`<span><span class="dot" style="background:#fff;border:1px solid var(--line)"></span>Aún sin aprobar (clic para proyectar)</span>`
    +`<span><span class="dot" style="background:#f3e8ff;border:1px solid var(--sb)"></span>Suspendido</span>`
    +`<span><span class="dot" style="background:#fee2e2;border:1px solid #dc2626"></span>No aplica</span>`;
 
@@ -725,7 +743,8 @@ renderResumen();
       const n=cobrado(p.nombre,a.nombre), tt=`onmousemove="tipMove(event)" onmouseenter="tipShow(event,'${esc(p.nombre)}','${esc(a.nombre)}')" onmouseleave="tipHide()"`;
       if(n){ const c=col(n); t+=`<td style="background:${c[0]}" ${tt}><div class="cv" style="color:${c[1]}">Acta ${n}</div><div class="cr" style="font-size:10.5px">${fM(w)}</div></td>`; }
       else if(estado(p.nombre,a.nombre)==='A'){ t+=`<td style="background:var(--okbg);outline:1.5px dashed var(--ok);outline-offset:-3px" ${tt}><div class="cv" style="color:#15803d;font-size:12px">Por cobrar</div><div class="cr" style="font-size:10.5px">${fM(w)}</div></td>`; }
-      else t+=`<td style="background:#fff" ${tt}>&nbsp;</td>`;
+      else if(proy(p.nombre,a.nombre)){ t+=`<td style="background:#fed7aa;cursor:pointer" onclick="toggleProy('${esc(p.nombre)}','${esc(a.nombre)}')" ${tt}><div class="cv" style="color:#c2410c;font-size:12px">Proyectado</div><div class="cr" style="font-size:10.5px;color:#9a3412">${fM(w)}</div></td>`; }
+      else t+=`<td style="background:#fff;cursor:pointer" onclick="toggleProy('${esc(p.nombre)}','${esc(a.nombre)}')" ${tt}>&nbsp;</td>`;
     });
     t+='</tr>';
   });
@@ -741,14 +760,17 @@ renderResumen();
   };
   nums.forEach(n=>t+=fila(`Valor acta ${n}`,col(n)[1],(p,a)=>cobrado(p,a)===n));
   t+=fila(`Por cobrar (acta ${sig})`,'#15803d',pend);
+  t+=fila(`Proyectado (acta ${sig})`,'#c2410c',proy);
+  t+=fila(`TOTAL acta ${sig} (por cobrar + proyectado)`,'#0f172a',(p,a)=>pend(p,a)||proy(p,a));
   t+='</tfoot>';
   document.getElementById('mtxActa').innerHTML=t;
 
   document.getElementById('anota').innerHTML=
-    `Los valores son los del presupuesto de cada componente (con IVA), los mismos de la matriz de costos. Un componente aprobado en la trazabilidad que aún no está en ningún acta aparece como <b>Por cobrar</b>; cuando se cobre, se registra en el bloque <b>ACTAS_DATA</b> y pasa a su color de acta.`
+    `Los valores son los del presupuesto de cada componente (con IVA), los mismos de la matriz de costos. Un componente aprobado en la trazabilidad que aún no está en ningún acta aparece como <b>Por cobrar</b>; haga clic en una casilla blanca para <b>proyectarla</b> (naranja) y sumarla al acta ${sig}; otro clic la quita. La proyección se guarda sola en este navegador y no afecta el resto del tablero; cuando se cobre, se registra en el bloque <b>ACTAS_DATA</b> y pasa a su color de acta.`
     +(sinAprob?`<br><b style="color:#b45309">Nota:</b> ${sinAprob} componente(s) cobrado(s) en un acta aún no figuran como aprobados en TRAZABILIDAD (pase el cursor por la celda para ver su historial).`:'');
-})();
-
+  wrap.scrollLeft=sl; wrap.scrollTop=st0;
+};
+renderActa();
 }
 iniciar();
 </script>
