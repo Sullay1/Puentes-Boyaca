@@ -94,6 +94,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
     <div class="tab" data-t="t3" onclick="showTab('t3',this)">3 · Estado</div>
     <div class="tab" data-t="t4" onclick="showTab('t4',this)">4 · Avance por fase</div>
     <div class="tab" data-t="t5" onclick="showTab('t5',this)">5 · Costos</div>
+    <div class="tab" data-t="t6" onclick="showTab('t6',this)">6 · Acta de cobro</div>
   </div>
 
   <div class="panel" id="t1" style="display:none">
@@ -117,7 +118,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
       <span><span class="dot" style="background:#fee2e2;border:1px solid #dc2626"></span>No aplica — el estudio no está en el alcance de ese puente</span>
     </div>
     <div style="overflow:auto;max-height:75vh"><table class="mtable" id="mtxDet"></table></div>
-    <div class="note">Cada celda muestra la <b>última versión entregada</b> (V) y su fecha, y debajo la <b>última respuesta</b> de interventoría (R) si la hay. Los tres números pequeños son el % de campo, oficina y aprobación registrado en AVANCE. Pase el cursor por una celda para ver el historial completo de fechas.</div>
+    <div class="note">Cada celda muestra la <b>última versión entregada</b> (V) y su fecha, y debajo la <b>última respuesta</b> de interventoría (R) si la hay. Si la actividad ya tiene una <b>aprobación</b>, siempre queda en verde y muestra la versión aprobada con su respuesta, aunque después se hayan hecho más entregas. Los tres números pequeños son el % de campo, oficina y aprobación registrado en AVANCE. Pase el cursor por una celda para ver el historial completo de fechas.</div>
   </div>
 
   <div class="panel" id="t3" style="display:none">
@@ -131,7 +132,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
       <span><span class="dot" style="background:#fee2e2;border:1px solid #dc2626"></span>No aplica</span>
     </div>
     <div style="overflow:auto;max-height:70vh"><table class="mtable" id="mtxEst"></table></div>
-    <div class="note">El estado se deduce de la fila más reciente de TRAZABILIDAD: una <b>ENTREGA</b> sin respuesta después dice "en interventoría"; una <b>RESPUESTA</b> con resultado APROBACION dice "aprobado"; con OBSERVACIONES vuelve a "en consultoría".</div>
+    <div class="note">El estado se deduce de la fila más reciente de TRAZABILIDAD: una <b>ENTREGA</b> sin respuesta después dice "en interventoría"; una <b>RESPUESTA</b> con resultado APROBACION dice "aprobado" y <b>prevalece siempre</b>, aunque después haya nuevas entregas; con OBSERVACIONES vuelve a "en consultoría".</div>
     <h3 class="sec" style="margin-top:22px">Valor cobrable a la fecha</h3>
     <div style="overflow:auto"><table class="mtable" id="cobro" style="max-width:1000px"></table></div>
     <div class="note">Suma del valor de las actividades con concepto favorable (APROBACION) por puente.</div>
@@ -161,6 +162,14 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
     <h3 class="sec" style="margin-top:20px">Matriz de costos: Actividad × Puente (con IVA, $ millones)</h3>
     <div style="overflow:auto;max-height:70vh"><table class="mtable" id="ctbl"></table></div>
     <div class="note">El subtotal y el costo por puente usan el presupuesto de la hoja PUENTES (siempre completo, incluye San Benito). La matriz de abajo usa el desglose de la hoja PRESUPUESTO.</div>
+  </div>
+
+  <div class="panel" id="t6" style="display:none">
+    <h3 class="sec">Acta de cobro — qué se ha cobrado y qué está listo para la siguiente acta</h3>
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin:6px 0 14px" id="akpi"></div>
+    <div class="legend" id="aleg"></div>
+    <div style="overflow:auto;max-height:75vh"><table class="mtable" id="mtxActa"></table></div>
+    <div class="note" id="anota"></div>
   </div>
 </div>
 <div class="gtip" id="gtip"></div>
@@ -305,9 +314,32 @@ async function cargarDatos(){
   });
   Object.keys(EVS).forEach(k=>EVS[k].sort((a,b)=>a.f<b.f?-1:1));
 
+  const ACTA={}; // 'puente|actividad' -> nº de acta
+  Object.keys(ACTAS_DATA).forEach(n=>Object.keys(ACTAS_DATA[n]).forEach(pid=>{
+    const p=PUENTES.find(x=>x.id===+pid); if(!p) return;
+    ACTAS_DATA[n][pid].forEach(aid=>{ const a=ACTIVIDADES.find(x=>x.id===aid); if(a) ACTA[p.nombre+'|'+a.nombre]=+n; });
+  }));
+  if(ACTAS_URL){
+    try{
+      const r=await fetch(ACTAS_URL); const t=await r.text();
+      if(r.ok&&!t.trimStart().startsWith('<')) tabla(parseCSV(t),['puente','actividad','acta']).forEach((r,i)=>{
+        const p=r['puente'], a=r['actividad'], n=parseInt(r['acta']);
+        if(!nombresPuente.has(p)||!nombresAct.has(a)||!n){ avisos.push(`ACTAS fila ${i+2}: dato no válido.`); return; }
+        ACTA[p+'|'+a]=n;
+      });
+    }catch(e){ avisos.push('No se pudo leer la hoja ACTAS.'); }
+  }
   const hoy=new Date();
-  return {data:{PUENTES,ACTIVIDADES,PESO,PESO_FASE,FASE,EVS,corte:hoy.toISOString().slice(0,10)}, avisos};
+  return {data:{PUENTES,ACTIVIDADES,PESO,PESO_FASE,FASE,EVS,ACTA,corte:hoy.toISOString().slice(0,10)}, avisos};
 }
+
+/* Componentes ya cobrados por acta: {acta: {id_puente: [id_actividad,...]}} — Acta 1 tomada del
+   "Sábana cuadro de cantidades contratadas y ejecutadas" (11/09/2026). Las actas siguientes se agregan aquí. */
+const ACTAS_DATA = {
+  1: {1:[1, 2, 4, 5, 6, 7, 9, 10, 11, 13, 14, 15, 16],2:[1, 2, 6, 11, 13],3:[1, 2, 6, 11, 13],4:[1, 2, 6, 11, 13],5:[1, 2, 6, 11, 13],6:[1, 2, 6, 11, 13],7:[1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16],8:[1, 2, 4, 5, 6, 7, 9, 10, 11, 14, 15, 16],9:[1, 2, 6, 11],10:[1, 2, 6, 11, 13],11:[1, 2, 13],12:[1, 2, 6, 11, 13],13:[1, 2, 6, 11, 13],14:[1, 2, 6, 11, 13],15:[1, 2, 6, 11, 13],16:[1, 2, 6, 11]}
+};
+/* Opcional: URL CSV publicada de una hoja ACTAS (columnas: puente, actividad, acta). Vacía = no se usa. */
+const ACTAS_URL = '';
 
 function mostrarError(e){
   document.getElementById('cargando').innerHTML=
@@ -321,7 +353,7 @@ function recargar(){
   document.getElementById('cargando').innerHTML='<div style="font-size:15px;font-weight:600;color:var(--brand)">Actualizando…</div>';
   document.getElementById('tabs').style.display='none';
   document.getElementById('entregwrap').style.display='none';
-  ['t1','t2','t3','t4','t5'].forEach(t=>document.getElementById(t).style.display='none');
+  ['t1','t2','t3','t4','t5','t6'].forEach(t=>document.getElementById(t).style.display='none');
   iniciar();
 }
 async function iniciar(){
@@ -357,7 +389,7 @@ const LEG_NIVELES = `
 const LEG_NIVELES_SB = LEG_NIVELES + `<span><span class="dot" style="background:#a855f7"></span>Suspendido</span>`;
 
 function render(DATA){
-const {PUENTES, ACTIVIDADES, PESO, PESO_FASE, FASE, EVS} = DATA;
+const {PUENTES, ACTIVIDADES, PESO, PESO_FASE, FASE, EVS, ACTA} = DATA;
 const ACTIVOS = PUENTES.filter(p=>p.estado!=='SUSPENDIDO');
 const NOM={A:'Aprobado',T:'En interventoría',C:'En consultoría',P:'No entregado',S:'Suspendido'};
 const fmt = s=>{ if(!s) return ''; const[y,m,d]=s.split('-'); return d+'/'+m+'/'+y.slice(2); };
@@ -378,6 +410,7 @@ function fase(p,a){ return FASE[key(p,a)]||{campo:0,oficina:0,aprobacion:0,total
 function estado(p,a){
   if(PUENTES.find(x=>x.nombre===p&&x.estado==='SUSPENDIDO')) return 'S';
   const e=evsDe(p,a); if(!e.length) return 'P';
+  if(e.some(x=>x.ev==='RESPUESTA'&&x.res==='APROBACION')) return 'A'; // la aprobación siempre prima, aunque haya entregas posteriores
   const u=e[e.length-1];
   if(u.ev==='ENTREGA') return 'T';
   if(u.res==='APROBACION') return 'A';
@@ -385,6 +418,10 @@ function estado(p,a){
 }
 function ultEntrega(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='ENTREGA'); return e.length?e[e.length-1]:null; }
 function ultResp(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='RESPUESTA'); return e.length?e[e.length-1]:null; }
+/* Última respuesta APROBACION y la entrega a la que corresponde (la última entrega hasta esa fecha) */
+function aprobResp(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='RESPUESTA'&&x.res==='APROBACION'); return e.length?e[e.length-1]:null; }
+function entregaAprobada(p,a){ const r=aprobResp(p,a); if(!r) return null;
+  const en=evsDe(p,a).filter(x=>x.ev==='ENTREGA'&&x.f<=r.f); return en.length?en[en.length-1]:ultEntrega(p,a); }
 function priEntrega(p,a){ const e=evsDe(p,a).filter(x=>x.ev==='ENTREGA'); return e.length?e[0]:null; }
 /* La hoja ya trae V1/R1; esto es solo por si alguna fila vieja quedó con el número solo. */
 function verLbl(prefijo, v){
@@ -399,7 +436,7 @@ function diasEnInterv(p,a){
 }
 
 window.showTab=function(id,el){
-  ['t1','t2','t3','t4','t5'].forEach(t=>document.getElementById(t).style.display=t===id?'block':'none');
+  ['t1','t2','t3','t4','t5','t6'].forEach(t=>document.getElementById(t).style.display=t===id?'block':'none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
 };
@@ -509,7 +546,7 @@ renderResumen();
     PUENTES.forEach(p=>{
       if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S">—</td>`; return; }
       if(!peso(p.nombre,a.nombre)){ t+=`<td class="td-N"><span style="color:#991b1b;font-size:10.5px;font-weight:600">No aplica</span></td>`; return; }
-      const st=estado(p.nombre,a.nombre), en=ultEntrega(p.nombre,a.nombre), re=ultResp(p.nombre,a.nombre), f=fase(p.nombre,a.nombre);
+      const st=estado(p.nombre,a.nombre), en=(st==='A'?entregaAprobada(p.nombre,a.nombre):ultEntrega(p.nombre,a.nombre)), re=(st==='A'?aprobResp(p.nombre,a.nombre):ultResp(p.nombre,a.nombre)), f=fase(p.nombre,a.nombre);
       let in_='';
       if(en) in_+=`<div class="cv">${verLbl('V',en.v)}</div><div class="cf">${fmt(en.f)}</div>`;
       else   in_+='<span style="color:var(--muted);font-size:11px">Sin entregar</span>';
@@ -645,6 +682,71 @@ renderResumen();
     t+=`<td style="text-align:right;font-weight:700" title="${fF(s)}">${(s/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})}</td>`; });
   t+=`<td style="text-align:right;font-weight:800">${(subT/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})}</td></tr></tfoot>`;
   document.getElementById('ctbl').innerHTML=t;
+})();
+
+/* ══ TAB 6 · ACTA DE COBRO ══ */
+(function(){
+  const COLS={1:['#e0e7ff','#4f46e5'],2:['#ccfbf1','#0f766e'],3:['#fce7f3','#be185d'],4:['#fef3c7','#b45309'],5:['#e0f2fe','#0369a1']};
+  const col=n=>COLS[((n-1)%5)+1];
+  const nums=[...new Set(Object.values(ACTA))].sort((a,b)=>a-b);
+  const sig=(nums.length?nums[nums.length-1]:0)+1; // próxima acta
+  const cobrado=(p,a)=>ACTA[p+'|'+a]||0;
+  const pend=(p,a)=>!cobrado(p,a)&&estado(p,a)==='A'&&peso(p,a)>0;
+  const PN=PUENTES.filter(p=>p.estado!=='SUSPENDIDO');
+  const sum=(fn)=>PN.reduce((s,p)=>s+ACTIVIDADES.reduce((t,a)=>t+(fn(p.nombre,a.nombre)?peso(p.nombre,a.nombre):0),0),0);
+  const cnt=(fn)=>PN.reduce((s,p)=>s+ACTIVIDADES.reduce((t,a)=>t+(fn(p.nombre,a.nombre)&&peso(p.nombre,a.nombre)?1:0),0),0);
+  const TOTC=PUENTES.reduce((s,p)=>s+p.presupuesto,0);
+  const vCob=sum((p,a)=>cobrado(p,a)), vPen=sum(pend);
+  const sinAprob=cnt((p,a)=>cobrado(p,a)&&estado(p,a)!=='A');
+
+  document.getElementById('akpi').innerHTML=
+    nums.map(n=>`<div class="kpi" style="border-top:3px solid ${col(n)[1]}"><div class="n" style="color:${col(n)[1]}">${fF(sum((p,a)=>cobrado(p,a)===n))}</div><div class="t">Valor del acta ${n} — ${cnt((p,a)=>cobrado(p,a)===n)} componentes</div></div>`).join('')
+   +`<div class="kpi ok" style="border-top:3px solid var(--ok)"><div class="n">${fF(vPen)}</div><div class="t">Aprobado y sin cobrar — posible acta ${sig} (${cnt(pend)} componentes)</div></div>`
+   +`<div class="kpi big"><div class="n">${(TOTC?vCob/TOTC*100:0).toFixed(1)}%</div><div class="t">Cobrado del contrato (${fM(vCob)} de ${fM(TOTC)})</div></div>`;
+  document.getElementById('akpi').style.gridTemplateColumns=`repeat(${nums.length+2},1fr)`;
+
+  document.getElementById('aleg').innerHTML=
+    nums.map(n=>`<span><span class="dot" style="background:${col(n)[0]};border:1px solid ${col(n)[1]}"></span><b>Acta ${n}</b> — ya cobrado</span>`).join('')
+   +`<span><span class="dot" style="background:var(--okbg);border:1px dashed var(--ok)"></span><b>Aprobado, sin cobrar</b> — iría en el acta ${sig}</span>`
+   +`<span><span class="dot" style="background:#fff;border:1px solid var(--line)"></span>Aún sin aprobar</span>`
+   +`<span><span class="dot" style="background:#f3e8ff;border:1px solid var(--sb)"></span>Suspendido</span>`
+   +`<span><span class="dot" style="background:#fee2e2;border:1px solid #dc2626"></span>No aplica</span>`;
+
+  const esc=s=>s.replace(/'/g,"\\'");
+  let t='<thead><tr><th class="actcell" style="min-width:210px">Actividad</th>';
+  PUENTES.forEach(p=>t+=`<th style="min-width:110px">${p.nombre}${p.estado==='SUSPENDIDO'?'<div class="badge-sb" style="margin:2px 0 0">SUSPENDIDO</div>':''}</th>`);
+  t+='</tr></thead><tbody>';
+  ACTIVIDADES.forEach(a=>{
+    t+=`<tr><td class="actcell">${a.nombre}</td>`;
+    PUENTES.forEach(p=>{
+      if(p.estado==='SUSPENDIDO'){ t+=`<td class="td-S">—</td>`; return; }
+      const w=peso(p.nombre,a.nombre);
+      if(!w){ t+=`<td class="td-N"><span style="color:#991b1b;font-size:10.5px;font-weight:600">No aplica</span></td>`; return; }
+      const n=cobrado(p.nombre,a.nombre), tt=`onmousemove="tipMove(event)" onmouseenter="tipShow(event,'${esc(p.nombre)}','${esc(a.nombre)}')" onmouseleave="tipHide()"`;
+      if(n){ const c=col(n); t+=`<td style="background:${c[0]}" ${tt}><div class="cv" style="color:${c[1]}">Acta ${n}</div><div class="cr" style="font-size:10.5px">${fM(w)}</div></td>`; }
+      else if(estado(p.nombre,a.nombre)==='A'){ t+=`<td style="background:var(--okbg);outline:1.5px dashed var(--ok);outline-offset:-3px" ${tt}><div class="cv" style="color:#15803d;font-size:12px">Por cobrar</div><div class="cr" style="font-size:10.5px">${fM(w)}</div></td>`; }
+      else t+=`<td style="background:#fff" ${tt}>&nbsp;</td>`;
+    });
+    t+='</tr>';
+  });
+  t+='</tbody><tfoot>';
+  const fila=(lbl,color,fn)=>{
+    let r=`<tr><td class="actcell" style="color:${color};font-weight:800">${lbl}</td>`;
+    PUENTES.forEach(p=>{
+      if(p.estado==='SUSPENDIDO'){ r+=`<td class="td-S">—</td>`; return; }
+      const v=ACTIVIDADES.reduce((s,a)=>s+(fn(p.nombre,a.nombre)?peso(p.nombre,a.nombre):0),0);
+      r+=`<td style="text-align:right;font-weight:700;color:${color}">${v?fF(v):'—'}</td>`;
+    });
+    return r+'</tr>';
+  };
+  nums.forEach(n=>t+=fila(`Valor acta ${n}`,col(n)[1],(p,a)=>cobrado(p,a)===n));
+  t+=fila(`Por cobrar (acta ${sig})`,'#15803d',pend);
+  t+='</tfoot>';
+  document.getElementById('mtxActa').innerHTML=t;
+
+  document.getElementById('anota').innerHTML=
+    `Los valores son los del presupuesto de cada componente (con IVA), los mismos de la matriz de costos. Un componente aprobado en la trazabilidad que aún no está en ningún acta aparece como <b>Por cobrar</b>; cuando se cobre, se registra en el bloque <b>ACTAS_DATA</b> y pasa a su color de acta.`
+    +(sinAprob?`<br><b style="color:#b45309">Nota:</b> ${sinAprob} componente(s) cobrado(s) en un acta aún no figuran como aprobados en TRAZABILIDAD (pase el cursor por la celda para ver su historial).`:'');
 })();
 
 }
