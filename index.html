@@ -20,7 +20,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",-appl
 .header .sub{opacity:.92;font-size:12.5px;margin-top:3px}
 .header .cut{margin-left:auto;text-align:right;font-size:12.5px;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25)}
 .hswitch{display:flex;align-items:center;gap:7px;font-size:12.5px;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25);cursor:pointer;user-select:none}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:14px 0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
 .kpi .n{font-size:24px;font-weight:800;line-height:1.1}
 .kpi .t{color:var(--muted);font-size:11.5px;margin-top:2px}
@@ -339,12 +339,17 @@ async function cargarDatos(){
 }
 
 /* Componentes ya cobrados por acta: {acta: {id_puente: [id_actividad,...]}} — Acta 1 tomada del
-   "Sábana cuadro de cantidades contratadas y ejecutadas" (11/09/2026). Las actas siguientes se agregan aquí. */
+   "Sábana cuadro de cantidades contratadas y ejecutadas" (11/09/2026); acta 2 registrada el 19/11/2026. Las actas siguientes se agregan aquí. */
 const ACTAS_DATA = {
-  1: {1:[1, 2, 4, 5, 6, 7, 9, 10, 11, 13, 14, 15, 16],2:[1, 2, 6, 11, 13],3:[1, 2, 6, 11, 13],4:[1, 2, 6, 11, 13],5:[1, 2, 6, 11, 13],6:[1, 2, 6, 11, 13],7:[1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16],8:[1, 2, 4, 5, 6, 7, 9, 10, 11, 14, 15, 16],9:[1, 2, 6, 11],10:[1, 2, 6, 11, 13],11:[1, 2, 13],12:[1, 2, 6, 11, 13],13:[1, 2, 6, 11, 13],14:[1, 2, 6, 11, 13],15:[1, 2, 6, 11, 13],16:[1, 2, 6, 11]}
+  1: {1:[1, 2, 4, 5, 6, 7, 9, 10, 11, 13, 14, 15, 16],2:[1, 2, 6, 11, 13],3:[1, 2, 6, 11, 13],4:[1, 2, 6, 11, 13],5:[1, 2, 6, 11, 13],6:[1, 2, 6, 11, 13],7:[1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16],8:[1, 2, 4, 5, 6, 7, 9, 10, 11, 14, 15, 16],9:[1, 2, 6, 11],10:[1, 2, 6, 11, 13],11:[1, 2, 13],12:[1, 2, 6, 11, 13],13:[1, 2, 6, 11, 13],14:[1, 2, 6, 11, 13],15:[1, 2, 6, 11, 13],16:[1, 2, 6, 11]},
+  /* Acta 2 = lo que estaba "Por cobrar" + "Proyectado" al 19/11/2026 (41 componentes, $ 929.442.000) */
+  2: {1:[12],2:[4,5,7,8],3:[4,7,8],4:[5,8],5:[4,7,12,14,15],6:[4,5,7,12,14,15],7:[12],8:[12],10:[5,8],11:[5],13:[4,5,8],14:[4,7,8,12,14,15],15:[4,5,7,12,14,15]}
 };
 /* Opcional: URL CSV publicada de una hoja ACTAS (columnas: puente, actividad, acta). Vacía = no se usa. */
 const ACTAS_URL = '';
+/* URL de la aplicación web de Apps Script que guarda la proyección del acta en la hoja PROYECCION
+   (compartida entre todos los dispositivos). Vacía = la proyección se guarda solo en este navegador. */
+const PROY_URL = '';
 
 function mostrarError(e){
   document.getElementById('cargando').innerHTML=
@@ -444,6 +449,7 @@ window.showTab=function(id,el){
   ['t1','t2','t3','t4','t5','t6'].forEach(t=>document.getElementById(t).style.display=t===id?'block':'none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
+  if(id==='t6'&&window.refrescarProy) refrescarProy();
 };
 const tip=document.getElementById('gtip');
 window.tipShow=function(ev,p,a){
@@ -495,14 +501,12 @@ window.renderResumen=function(){
   const excluirSB=document.getElementById('chkSB').checked;
   const {TOT,RAD,APR,EJE}=calcAgg(excluirSB);
   const pE=TOT?EJE/TOT*100:0, pR=TOT?RAD/TOT*100:0, pA=TOT?APR/TOT*100:0;
-  const pT=pR+pA, vT=RAD+APR; // % avance técnico = radicado + aprobado (respeta el interruptor de San Benito vía TOT)
 
   document.getElementById('kpis').innerHTML=`
    <div class="kpi big"><div class="n">${fM(TOT)}</div><div class="t">Presupuesto ${excluirSB?'(sin San Benito)':'(con San Benito)'}</div></div>
    <div class="kpi rev"><div class="n">${pR.toFixed(1)}%</div><div class="t">Radicado — ${fM(RAD)}</div></div>
    <div class="kpi"><div class="n" style="color:var(--brand2)">${pE.toFixed(1)}%</div><div class="t">Ejecutado ponderado — ${fM(EJE)}</div></div>
-   <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>
-   <div class="kpi"><div class="n" style="color:#7c3aed">${pT.toFixed(1)}%</div><div class="t">% Avance técnico (radicado + aprobado) — ${fM(vT)}</div></div>`;
+   <div class="kpi ok"><div class="n">${pA.toFixed(1)}%</div><div class="t">Aprobado / cobrable — ${fM(APR)}</div></div>`;
 
   /* Entregables: usa la misma base que los $ de arriba, respetando el interruptor de San Benito.
      Las celdas "no aplica" (sin presupuesto asignado) no cuentan ni como entregadas ni como pendientes. */
@@ -690,16 +694,33 @@ renderResumen();
 })();
 
 /* ══ TAB 6 · ACTA DE COBRO ══ */
-const PROY_KEY='proyeccion_acta_IPO008_2025';
+const PROY_KEY='proyeccion_acta3_IPO008_2025'; // llave nueva: la proyección del acta 2 ya quedó registrada como Acta 2
 let PROY={};
 try{ PROY=JSON.parse(localStorage.getItem(PROY_KEY)||'{}')||{}; }catch(e){ PROY={}; }
-function guardarProy(){ try{ localStorage.setItem(PROY_KEY,JSON.stringify(PROY)); return true; }catch(e){ return false; } }
+function itemsProy(){ return Object.keys(PROY).map(k=>k.split('|')); }
+async function enviarProy(){
+  if(!PROY_URL) return true;
+  try{ await fetch(PROY_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({items:itemsProy()})}); return true; }
+  catch(e){ return false; }
+}
+function guardarProy(){ let ok=true; try{ localStorage.setItem(PROY_KEY,JSON.stringify(PROY)); }catch(e){ ok=PROY_URL?true:false; } enviarProy(); return ok; }
+window.refrescarProy=async function(){
+  if(!PROY_URL) return;
+  try{
+    const r=await fetch(PROY_URL+(PROY_URL.includes('?')?'&':'?')+'t='+Date.now()); const j=await r.json();
+    const n={}; (j.items||[]).forEach(x=>{ n[x[0]+'|'+x[1]]=1; });
+    if(JSON.stringify(Object.keys(n).sort())!==JSON.stringify(Object.keys(PROY).sort())){ PROY=n; try{localStorage.setItem(PROY_KEY,JSON.stringify(PROY));}catch(e){} renderActa(); }
+  }catch(e){ const m=document.getElementById('proyMsg'); if(m) m.textContent='No se pudo leer la proyección compartida'; }
+};
 window.toggleProy=function(p,a){ const k=p+'|'+a; if(PROY[k]) delete PROY[k]; else PROY[k]=1; guardarProy(); renderActa(); };
 window.limpiarProy=function(){ if(!Object.keys(PROY).length) return; if(confirm('¿Borrar toda la proyección del acta siguiente?')){ PROY={}; guardarProy(); renderActa(); } };
-window.guardarProyBtn=function(){ const ok=guardarProy(); const m=document.getElementById('proyMsg'); m.textContent=ok?'✓ Guardado en este navegador':'No se pudo guardar (navegador sin almacenamiento)'; setTimeout(()=>{m.textContent='';},2500); };
+window.guardarProyBtn=async function(){ const m=document.getElementById('proyMsg'); let ok=guardarProy();
+  if(PROY_URL){ ok=await enviarProy(); m.textContent=ok?'✓ Guardado para todos (hoja compartida)':'No se pudo guardar en la hoja compartida'; }
+  else m.textContent=ok?'✓ Guardado en este navegador':'No se pudo guardar (navegador sin almacenamiento)';
+  setTimeout(()=>{m.textContent='';},3000); };
 window.renderActa=function(){
   const wrap=document.getElementById('actaWrap'), sl=wrap.scrollLeft, st0=wrap.scrollTop;
-  const COLS={1:['#e0e7ff','#4f46e5'],2:['#ccfbf1','#0f766e'],3:['#fce7f3','#be185d'],4:['#fef3c7','#b45309'],5:['#e0f2fe','#0369a1']};
+  const COLS={1:['#e0e7ff','#4f46e5'],2:['#bae6fd','#0369a1'],3:['#fce7f3','#be185d'],4:['#fef3c7','#b45309'],5:['#ccfbf1','#0f766e']};
   const col=n=>COLS[((n-1)%5)+1];
   const nums=[...new Set(Object.values(ACTA))].sort((a,b)=>a-b);
   const sig=(nums.length?nums[nums.length-1]:0)+1; // próxima acta
@@ -766,11 +787,12 @@ window.renderActa=function(){
   document.getElementById('mtxActa').innerHTML=t;
 
   document.getElementById('anota').innerHTML=
-    `Los valores son los del presupuesto de cada componente (con IVA), los mismos de la matriz de costos. Un componente aprobado en la trazabilidad que aún no está en ningún acta aparece como <b>Por cobrar</b>; haga clic en una casilla blanca para <b>proyectarla</b> (naranja) y sumarla al acta ${sig}; otro clic la quita. La proyección se guarda sola en este navegador y no afecta el resto del tablero; cuando se cobre, se registra en el bloque <b>ACTAS_DATA</b> y pasa a su color de acta.`
+    `Los valores son los del presupuesto de cada componente (con IVA), los mismos de la matriz de costos. Un componente aprobado en la trazabilidad que aún no está en ningún acta aparece como <b>Por cobrar</b>; haga clic en una casilla blanca para <b>proyectarla</b> (naranja) y sumarla al acta ${sig}; otro clic la quita. La proyección se guarda sola (en la hoja compartida si está conectada, si no, en este navegador) y no afecta el resto del tablero; cuando se cobre, se registra en el bloque <b>ACTAS_DATA</b> y pasa a su color de acta.`
     +(sinAprob?`<br><b style="color:#b45309">Nota:</b> ${sinAprob} componente(s) cobrado(s) en un acta aún no figuran como aprobados en TRAZABILIDAD (pase el cursor por la celda para ver su historial).`:'');
   wrap.scrollLeft=sl; wrap.scrollTop=st0;
 };
 renderActa();
+refrescarProy();
 }
 iniciar();
 </script>
